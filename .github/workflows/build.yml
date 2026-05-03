@@ -61,11 +61,22 @@ jobs:
           CODE_SIGNING_REQUIRED=NO \
           CODE_SIGNING_ALLOWED=NO
 
+    - name: Create IPA
+      run: |
+        mkdir -p build/Payload
+        cp -r build/lara.xcarchive/Products/Applications/lara.app build/Payload/
+        cd build
+        zip -r lara.ipa Payload
+        cd ..
+        echo "=== IPA Created ==="
+        ls -lh build/lara.ipa
+
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       if: success()
       with:
         name: lara-trollstore-build
         path: |
-          build/
+          build/lara.ipa
+          build/lara.xcarchive/
         retention-days: 7
