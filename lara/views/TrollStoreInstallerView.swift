@@ -352,7 +352,15 @@ struct TrollStoreInstallerView: View {
 
             let ourProc = ds_get_our_proc()
             addLog("CRITICAL: our_proc = 0x\(String(format: "%llx", ourProc))")
+
+            // Force log flush before amfi_bypass
+            sleep(1)
+
             addLog("CRITICAL: Calling amfi_bypass() NOW...")
+            addLog("CRITICAL: If you see this but no amfi_debug.log, crash is IN amfi_bypass()")
+
+            // Force another flush
+            sleep(1)
 
             let amfiResult = amfi_bypass(ourProc)
 
