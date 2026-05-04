@@ -51,13 +51,19 @@ struct RemoteView: View {
                 Button {
                     run("Hide Icon Labels") {
                         let hidden = hide_icon_labels(mgr.sbProc)
-                        return "hide_icon_labels() -> \(hidden)"
+                        // Auto-respring after hiding labels to apply changes
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                            _ = mgr.rccall(name: "exit", args: [0], timeout: 100)
+                        }
+                        return "hide_icon_labels() -> \(hidden) (respringing in 1s...)"
                     }
                 } label: {
-                    Text("Hide Icon Labels")
+                    Text("Hide Icon Labels (Auto Respring)")
                 }
             } header: {
                 Text("SpringBoard")
+            } footer: {
+                Text("Will automatically respring after 1 second to apply changes")
             }
 
             Section {
