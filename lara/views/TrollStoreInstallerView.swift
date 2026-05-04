@@ -23,8 +23,13 @@ struct TrollStoreInstallerView: View {
     @State private var showPreviousLogs: Bool = false
 
     private let logFilePath: URL = {
+        // Save to shared container accessible from Files app
+        if let sharedURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.lara") {
+            return sharedURL.appendingPathComponent("trollstore_logs.txt")
+        }
+        // Fallback to Documents
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        return docs.appendingPathComponent("trollstore_install_logs.txt")
+        return docs.appendingPathComponent("trollstore_logs.txt")
     }()
 
     var body: some View {
@@ -247,19 +252,26 @@ struct TrollStoreInstallerView: View {
     }
 
     func saveLogToFile(_ message: String) {
-        do {
-            if FileManager.default.fileExists(atPath: logFilePath.path) {
-                let fileHandle = try FileHandle(forWritingTo: logFilePath)
-                fileHandle.seekToEndOfFile()
-                if let data = message.data(using: .utf8) {
-                    fileHandle.write(data)
+        // Force immediate write with sync
+        DispatchQueue.global(qos: .userInitiated).async {
+            do {
+                var content = ""
+                if FileManager.default.fileExists(atPath: logFilePath.path) {
+                    content = try String(contentsOf: logFilePath, encoding: .utf8)
                 }
-                fileHandle.closeFile()
-            } else {
-                try message.write(to: logFilePath, atomically: true, encoding: .utf8)
+                content += message
+
+                // Write atomically and force sync to disk
+                try content.write(to: logFilePath, atomically: true, encoding: .utf8)
+
+                // Force sync to disk immediately
+                if let fileHandle = try? FileHandle(forWritingTo: logFilePath) {
+                    fileHandle.synchronizeFile()
+                    fileHandle.closeFile()
+                }
+            } catch {
+                print("Failed to save log: \(error)")
             }
-        } catch {
-            print("Failed to save log: \(error)")
         }
     }
 
