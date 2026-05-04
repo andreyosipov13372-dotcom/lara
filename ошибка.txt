@@ -1,0 +1,1 @@
+аа❌ Не удалось скачать IPA: --2026-05-04 06:13:53-- https://github.com/andreyosipov13372-dotcom/lara/releases/latest/download/lara.ipa Resolving github.com (github.com)... 4.225.11.194 Connecting to github.com (github.com)|4.225.11.194|:443... connected. HTTP request sent, awaiting response... 404 Not Found 2026-05-04 06:13:53 ERROR 404: Not Found.

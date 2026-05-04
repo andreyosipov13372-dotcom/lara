@@ -1,0 +1,2 @@
+
+➜  ~ ssh -i /home/orkenlk/Загрузки/ssh-key-2026-04-29\ \(1\).key ubuntu@79.72.18.198
