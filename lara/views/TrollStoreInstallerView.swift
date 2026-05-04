@@ -325,7 +325,7 @@ struct TrollStoreInstallerView: View {
         addLog("Time: \(Date().formatted())")
 
         // Step 1: Verify DarkSword
-        status = "Step 1/5: Verifying kernel exploit..."
+        status = "Step 1/3: Verifying kernel exploit..."
         progress = 0.1
         addLog("Checking DarkSword status...")
 
@@ -337,69 +337,27 @@ struct TrollStoreInstallerView: View {
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             // Step 2: AMFI Bypass
-            status = "Step 2/5: Bypassing AMFI..."
-            progress = 0.3
+            status = "Step 2/3: Bypassing AMFI..."
+            progress = 0.4
             addLog("Attempting AMFI bypass...")
 
-            // Always attempt AMFI bypass - it's needed for RemoteCall
-            // The amfi.m code will handle PPL protection safely
             let amfiResult = amfi_bypass(ds_get_our_proc())
 
             if amfiResult == 0 {
                 addLog("✓ AMFI bypass successful")
-            } else if amfiResult == 1 {
-                addLog("⚠ AMFI bypass partial (may still work)")
-            } else if amfiResult == -4 {
-                addLog("⚠ AMFI bypass skipped (PPL protected)")
-                addLog("This is expected on A12+ devices")
-                addLog("RemoteCall should still work")
             } else {
-                addLog("✗ AMFI bypass failed (code: \(amfiResult))")
-                addLog("Continuing anyway - may still work...")
+                addLog("⚠ AMFI bypass returned code: \(amfiResult)")
+                addLog("Continuing anyway - TrollStore may still work")
             }
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                // Step 3: Initialize RemoteCall
-                status = "Step 3/5: Initializing RemoteCall..."
-                progress = 0.5
-                addLog("Initializing RemoteCall for installd...")
+                // Step 3: Download and install TrollStore
+                status = "Step 3/3: Installing TrollStore..."
+                progress = 0.7
+                addLog("Downloading TrollStore IPA...")
+                addLog("Note: TrollStore uses CoreTrust bug, no installd patching needed")
 
-                mgr.rcinit(process: "installd", migbypass: false) { success in
-                    if !success {
-                        addLog("⚠ RemoteCall init failed, trying alternative method...")
-                        // Continue anyway - we can try without RemoteCall
-                    } else {
-                        addLog("✓ RemoteCall initialized")
-                    }
-
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        // Step 4: Patch installd
-                        status = "Step 4/5: Patching installd..."
-                        progress = 0.7
-                        addLog("Patching installd for TrollStore...")
-
-                        if mgr.rcready, let sbProc = mgr.sbProc {
-                            let patchResult = installd_patch_for_trollstore(sbProc)
-                            if patchResult == 0 {
-                                addLog("✓ installd patched successfully")
-                            } else {
-                                addLog("⚠ installd patch had issues (code: \(patchResult))")
-                            }
-                        } else {
-                            addLog("⚠ Skipping installd patch (RemoteCall not available)")
-                            addLog("Installation may still work with AMFI bypass alone")
-                        }
-
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            // Step 5: Download and install TrollStore
-                            status = "Step 5/5: Installing TrollStore..."
-                            progress = 0.9
-                            addLog("Downloading TrollStore IPA...")
-
-                            downloadAndInstallTrollStore()
-                        }
-                    }
-                }
+                downloadAndInstallTrollStore()
             }
         }
     }
