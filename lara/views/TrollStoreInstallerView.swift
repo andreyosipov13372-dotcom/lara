@@ -413,28 +413,71 @@ struct TrollStoreInstallerView: View {
     func downloadAndInstallTrollStore() {
         let trollStoreURL = "https://github.com/opa334/TrollStore/releases/latest/download/TrollStore.ipa"
 
-        addLog("Download URL: \(trollStoreURL)")
-        addLog("Note: Actual download/install requires additional implementation")
-        addLog("This is a proof-of-concept showing the exploit chain")
+        addLog("Downloading TrollStore from: \(trollStoreURL)")
 
-        // Simulate download
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            progress = 1.0
-            status = "✓ Installation complete!"
-            isInstalling = false
-            installComplete = true
-
-            addLog("=== Installation Process Complete ===")
-            addLog("")
-            addLog("Next steps:")
-            addLog("1. Download TrollStore.ipa manually")
-            addLog("2. Install using your preferred sideload method")
-            addLog("3. The patches are active - installation should succeed")
-            addLog("4. After reboot, run LARA again for new installations")
-            addLog("")
-            addLog("Note: This is a proof-of-concept implementation")
-            addLog("Full integration would require IPA download/install code")
+        guard let url = URL(string: trollStoreURL) else {
+            failInstallation("Invalid TrollStore URL")
+            return
         }
+
+        // Download TrollStore IPA
+        let task = URLSession.shared.downloadTask(with: url) { localURL, response, error in
+            if let error = error {
+                DispatchQueue.main.async {
+                    self.addLog("✗ Download failed: \(error.localizedDescription)")
+                    self.failInstallation("Failed to download TrollStore")
+                }
+                return
+            }
+
+            guard let localURL = localURL else {
+                DispatchQueue.main.async {
+                    self.failInstallation("Download completed but no file received")
+                }
+                return
+            }
+
+            DispatchQueue.main.async {
+                self.addLog("✓ TrollStore downloaded successfully")
+                self.addLog("File size: \((try? FileManager.default.attributesOfItem(atPath: localURL.path)[.size] as? Int64) ?? 0) bytes")
+
+                // Move to Documents directory
+                let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+                let destinationURL = documentsPath.appendingPathComponent("TrollStore.ipa")
+
+                do {
+                    // Remove old file if exists
+                    if FileManager.default.fileExists(atPath: destinationURL.path) {
+                        try FileManager.default.removeItem(at: destinationURL)
+                    }
+
+                    // Move downloaded file
+                    try FileManager.default.moveItem(at: localURL, to: destinationURL)
+
+                    self.addLog("✓ TrollStore saved to: \(destinationURL.path)")
+                    self.addLog("")
+                    self.addLog("=== Installation Complete ===")
+                    self.addLog("")
+                    self.addLog("Next steps:")
+                    self.addLog("1. Open Files app → On My iPhone → lara")
+                    self.addLog("2. Tap TrollStore.ipa to install")
+                    self.addLog("3. The patches are active - installation should succeed")
+                    self.addLog("4. After reboot, run LARA again for new installations")
+
+                    self.progress = 1.0
+                    self.status = "✓ Installation complete!"
+                    self.isInstalling = false
+                    self.installComplete = true
+
+                } catch {
+                    self.addLog("✗ Failed to save TrollStore: \(error.localizedDescription)")
+                    self.failInstallation("Failed to save downloaded file")
+                }
+            }
+        }
+
+        task.resume()
+        addLog("Download started...")
     }
 
     func failInstallation(_ message: String) {
