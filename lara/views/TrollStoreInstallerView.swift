@@ -310,8 +310,14 @@ struct TrollStoreInstallerView: View {
     }
 
     func installTrollStore() {
-        guard canInstall else { return }
+        addLog("CRITICAL: installTrollStore() called")
 
+        guard canInstall else {
+            addLog("CRITICAL: canInstall = false, aborting")
+            return
+        }
+
+        addLog("CRITICAL: canInstall = true, proceeding")
         isInstalling = true
         installComplete = false
         progress = 0.0
@@ -323,25 +329,41 @@ struct TrollStoreInstallerView: View {
         addLog("Device: \(UIDevice.current.model)")
         addLog("iOS: \(UIDevice.current.systemVersion)")
         addLog("Time: \(Date().formatted())")
+        addLog("CRITICAL: Logs are being saved to Documents folder")
+        addLog("CRITICAL: Check Files app -> On My iPhone -> lara")
 
         // Step 1: Verify DarkSword
         status = "Step 1/3: Verifying kernel exploit..."
         progress = 0.1
-        addLog("Checking DarkSword status...")
+        addLog("=== STEP 1: VERIFY DARKSWORD ===")
+        addLog("CRITICAL: Checking DarkSword status...")
+        addLog("CRITICAL: mgr.dsready = \(mgr.dsready)")
 
         guard mgr.dsready else {
+            addLog("CRITICAL: DarkSword NOT ready, aborting")
             failInstallation("DarkSword exploit not ready")
             return
         }
         addLog("✓ DarkSword is ready")
+        addLog("CRITICAL: kernel_base = 0x\(String(format: "%llx", mgr.kernbase))")
+        addLog("CRITICAL: kernel_slide = 0x\(String(format: "%llx", mgr.kernslide))")
+        addLog("CRITICAL: Waiting 0.5s before AMFI bypass...")
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             // Step 2: AMFI Bypass
             status = "Step 2/3: Bypassing AMFI..."
             progress = 0.4
-            addLog("Attempting AMFI bypass...")
+            addLog("=== STEP 2: AMFI BYPASS ===")
+            addLog("CRITICAL: About to call amfi_bypass()")
+            addLog("CRITICAL: Getting our_proc...")
 
-            let amfiResult = amfi_bypass(ds_get_our_proc())
+            let ourProc = ds_get_our_proc()
+            addLog("CRITICAL: our_proc = 0x\(String(format: "%llx", ourProc))")
+            addLog("CRITICAL: Calling amfi_bypass() NOW...")
+
+            let amfiResult = amfi_bypass(ourProc)
+
+            addLog("CRITICAL: amfi_bypass() returned: \(amfiResult)")
 
             if amfiResult == 0 {
                 addLog("✓ AMFI bypass successful")
@@ -350,10 +372,13 @@ struct TrollStoreInstallerView: View {
                 addLog("Continuing anyway - TrollStore may still work")
             }
 
+            addLog("CRITICAL: AMFI bypass completed without crash")
+
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 // Step 3: Download and install TrollStore
                 status = "Step 3/3: Installing TrollStore..."
                 progress = 0.7
+                addLog("=== STEP 3: TROLLSTORE DOWNLOAD ===")
                 addLog("Downloading TrollStore IPA...")
                 addLog("Note: TrollStore uses CoreTrust bug, no installd patching needed")
 
