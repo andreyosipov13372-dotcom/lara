@@ -369,7 +369,8 @@ struct TrollStoreInstallerView: View {
     }
 
     func downloadAndInstallTrollStore() {
-        let trollStoreURL = "https://github.com/opa334/TrollStore/releases/latest/download/TrollStore.ipa"
+        // Use direct link instead of /latest/ redirect
+        let trollStoreURL = "https://github.com/opa334/TrollStore/releases/download/2.1.2/TrollStore.ipa"
 
         addLog("Downloading TrollStore from: \(trollStoreURL)")
 
@@ -378,8 +379,13 @@ struct TrollStoreInstallerView: View {
             return
         }
 
+        // Create URLSession configuration that follows redirects
+        let config = URLSessionConfiguration.default
+        config.httpMaximumConnectionsPerHost = 1
+        let session = URLSession(configuration: config)
+
         // Download TrollStore IPA
-        let task = URLSession.shared.downloadTask(with: url) { localURL, response, error in
+        let task = session.downloadTask(with: url) { localURL, response, error in
             if let error = error {
                 DispatchQueue.main.async {
                     self.addLog("✗ Download failed: \(error.localizedDescription)")
@@ -396,8 +402,17 @@ struct TrollStoreInstallerView: View {
             }
 
             DispatchQueue.main.async {
+                // Check file size before proceeding
+                let fileSize = (try? FileManager.default.attributesOfItem(atPath: localURL.path)[.size] as? Int64) ?? 0
                 self.addLog("✓ TrollStore downloaded successfully")
-                self.addLog("File size: \((try? FileManager.default.attributesOfItem(atPath: localURL.path)[.size] as? Int64) ?? 0) bytes")
+                self.addLog("File size: \(fileSize) bytes")
+
+                if fileSize < 1000 {
+                    self.addLog("✗ Downloaded file too small (\(fileSize) bytes)")
+                    self.addLog("This is likely a redirect or error page")
+                    self.failInstallation("TrollStore download failed - file too small")
+                    return
+                }
 
                 // Move to Documents directory
                 let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
