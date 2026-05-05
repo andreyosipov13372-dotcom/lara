@@ -429,31 +429,10 @@ struct TrollStoreInstallerView: View {
 
                     self.addLog("✓ TrollStore saved to: \(destinationURL.path)")
                     self.addLog("")
-                    self.addLog("=== Extracting TrollStore ===")
+                    self.addLog("=== Extracting TrollStore Binary ===")
 
-                    // Extract TrollStore.tar and find TrollStore.app
+                    // Extract TrollStore.tar and inject CDHash
                     self.extractAndInjectTrollStore(tarPath: destinationURL.path)
-
-                    if result == 0 {
-                        self.addLog("✓ TrollStore CDHash injected into trust cache!")
-                        self.addLog("")
-                        self.addLog("=== Installation Complete ===")
-                        self.addLog("")
-                        self.addLog("Next steps:")
-                        self.addLog("1. Open Files app → On My iPhone → lara")
-                        self.addLog("2. Tap TrollStore.ipa to install")
-                        self.addLog("3. Trust cache injection is active - should work!")
-                        self.addLog("4. Check trust_cache_debug.log for details")
-                    } else {
-                        self.addLog("⚠ Trust cache injection failed: \(result)")
-                        self.addLog("You can still try manual installation")
-                        self.addLog("Check trust_cache_debug.log for error details")
-                    }
-
-                    self.progress = 1.0
-                    self.status = "✓ Installation complete!"
-                    self.isInstalling = false
-                    self.installComplete = true
 
                 } catch {
                     self.addLog("✗ Failed to save TrollStore: \(error.localizedDescription)")
@@ -478,47 +457,38 @@ struct TrollStoreInstallerView: View {
 
         addLog("Extraction directory: \(tempDir)")
 
-        // Use tar command to extract
-        let extractCmd = "/usr/bin/tar -xf '\(tarPath)' -C '\(tempDir)'"
+        // Use tar command to extract - simpler approach
+        let extractCmd = "/usr/bin/tar -xf '\(tarPath)' -C '\(tempDir)' 2>&1"
         addLog("Running: \(extractCmd)")
 
-        let pipe = popen(extractCmd.cString(using: .utf8), "r")
-        if let pipe = pipe {
-            var output = ""
+        var output = ""
+        if let pipe = popen(extractCmd, "r") {
             var buffer = [CChar](repeating: 0, count: 256)
             while fgets(&buffer, 256, pipe) != nil {
                 output += String(cString: buffer)
             }
-            let status = pclose(pipe)
-            let exitCode = WEXITSTATUS(status)
+            pclose(pipe)
+        }
 
-            addLog("tar exit code: \(exitCode)")
+        if !output.isEmpty {
+            addLog("tar output: \(output)")
+        }
+
+        // Check if extraction succeeded by looking for files
+        guard let contents = try? FileManager.default.contentsOfDirectory(atPath: tempDir),
+              !contents.isEmpty else {
+            addLog("✗ TAR extraction failed - no files extracted")
             if !output.isEmpty {
-                addLog("tar output: \(output)")
+                addLog("Error: \(output)")
             }
-
-            if exitCode != 0 {
-                addLog("✗ TAR extraction failed")
-                failInstallation("Failed to extract TrollStore.tar")
-                return
-            }
-        } else {
-            addLog("✗ Failed to run tar command")
-            failInstallation("Failed to run tar extraction")
+            failInstallation("Failed to extract TrollStore.tar")
             return
         }
+
+        addLog("✓ TAR extracted successfully")
+        addLog("Found \(contents.count) items")
 
         // Find TrollStore.app in extracted files
-        addLog("Searching for TrollStore.app...")
-
-        guard let contents = try? FileManager.default.contentsOfDirectory(atPath: tempDir) else {
-            addLog("✗ Failed to read extraction directory")
-            failInstallation("Failed to read extracted files")
-            return
-        }
-
-        addLog("Found \(contents.count) items in extraction")
-
         var trollStoreAppPath: String?
 
         for item in contents {
