@@ -382,10 +382,21 @@ struct TrollStoreInstallerView: View {
         // Create URLSession configuration that follows redirects
         let config = URLSessionConfiguration.default
         config.httpMaximumConnectionsPerHost = 1
+        config.timeoutIntervalForRequest = 30
+        config.timeoutIntervalForResource = 300
         let session = URLSession(configuration: config)
 
         // Download TrollStore TAR
         let task = session.downloadTask(with: url) { localURL, response, error in
+            // Log response details
+            if let httpResponse = response as? HTTPURLResponse {
+                DispatchQueue.main.async {
+                    self.addLog("HTTP Status: \(httpResponse.statusCode)")
+                    if let finalURL = httpResponse.url {
+                        self.addLog("Final URL: \(finalURL.absoluteString)")
+                    }
+                }
+            }
             if let error = error {
                 DispatchQueue.main.async {
                     self.addLog("✗ Download failed: \(error.localizedDescription)")
@@ -410,6 +421,14 @@ struct TrollStoreInstallerView: View {
                 if fileSize < 100000 {
                     self.addLog("✗ Downloaded file too small (\(fileSize) bytes)")
                     self.addLog("This is likely a redirect or error page")
+
+                    // Log first 500 bytes to see what we got
+                    if let data = try? Data(contentsOf: localURL),
+                       let content = String(data: data.prefix(500), encoding: .utf8) {
+                        self.addLog("File content preview:")
+                        self.addLog(content)
+                    }
+
                     self.failInstallation("TrollStore download failed - file too small")
                     return
                 }
