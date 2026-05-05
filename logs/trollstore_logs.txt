@@ -1,0 +1,36 @@
+[15:30:36] CRITICAL: installTrollStore() called
+[15:30:36] CRITICAL: canInstall = true, proceeding
+
+
+========================================
+[15:30:36] === TrollStore Installation Started ===
+[15:30:36] Device: iPhone
+[15:30:36] iOS: 17.6.1
+[15:30:36] Time: 05.05.2026, 15:30
+[15:30:36] CRITICAL: Logs are being saved to Documents folder
+[15:30:36] CRITICAL: Check Files app -> On My iPhone -> lara
+[15:30:36] === STEP 1: VERIFY DARKSWORD ===
+[15:30:36] CRITICAL: Checking DarkSword status...
+[15:30:36] CRITICAL: mgr.dsready = true
+[15:30:36] ✓ DarkSword is ready
+[15:30:36] CRITICAL: kernel_base = 0xfffffff0144cc000
+[15:30:36] CRITICAL: kernel_slide = 0xd4c8000
+[15:30:36] CRITICAL: Waiting 0.5s before AMFI bypass...
+[15:30:37] === STEP 2: TRUST CACHE INJECTION ===
+[15:30:37] Note: Using trust cache injection instead of AMFI bypass
+[15:30:37] This is more stable and doesn't cause kernel panic
+[15:30:37] Initializing trust cache injection...
+[15:30:37] ✓ Trust cache injection initialized
+[15:30:37] === STEP 3: TROLLSTORE DOWNLOAD ===
+[15:30:37] Downloading TrollStore IPA...
+[15:30:37] Will inject CDHash into trust cache after download
+[15:30:37] Downloading TrollStore from: https://github.com/opa334/TrollStore/releases/latest/download/TrollStore.ipa
+[15:30:37] Download started...
+[15:30:38] ✓ TrollStore downloaded successfully
+[15:30:38] File size: 9 bytes
+[15:30:38] ✓ TrollStore saved to: /var/mobile/Containers/Data/Application/B4C1A253-EAA2-453B-88AC-B568953D4240/Documents/TrollStore.ipa
+[15:30:38] 
+[15:30:38] === Extracting TrollStore Binary ===
+[15:30:38] ⚠ Trust cache injection failed: -10
+[15:30:38] You can still try manual installation
+[15:30:38] Check trust_cache_debug.log for error details

