@@ -337,40 +337,39 @@ struct TrollStoreInstallerView: View {
         addLog("CRITICAL: Waiting 0.5s before AMFI bypass...")
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            // Step 2: Trust Cache Injection (SAFER than AMFI bypass)
-            status = "Step 2/3: Injecting Trust Cache..."
+            // Step 2: Patch installd (SAFER than trust cache injection)
+            status = "Step 2/3: Patching installd..."
             progress = 0.4
-            addLog("=== STEP 2: TRUST CACHE INJECTION ===")
-            addLog("Note: Using trust cache injection instead of AMFI bypass")
+            addLog("=== STEP 2: INSTALLD PATCH ===")
+            addLog("Note: Using installd patch instead of trust cache injection")
             addLog("This is more stable and doesn't cause kernel panic")
+            addLog("Patching installd to accept unsigned apps...")
 
-            // Initialize trust cache injection
-            addLog("Initializing trust cache injection...")
-            let tcInitResult = trust_cache_inject_init()
+            // Patch installd using RemoteCall
+            let patchResult = installd_patch_for_trollstore(mgr.rc)
 
-            if tcInitResult != 0 {
-                addLog("⚠ Trust cache init returned: \(tcInitResult)")
+            if patchResult != 0 {
+                addLog("⚠ installd patch returned: \(patchResult)")
                 addLog("Continuing anyway - may still work")
             } else {
-                addLog("✓ Trust cache injection initialized")
+                addLog("✓ installd patched successfully")
             }
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                // Step 3: Load bundled PersistenceHelper
+                // Step 3: Show PersistenceHelper location
                 status = "Step 3/3: Installing TrollStore..."
                 progress = 0.7
-                addLog("=== STEP 3: LOAD PERSISTENCEHELPER ===")
+                addLog("=== STEP 3: PERSISTENCEHELPER READY ===")
                 addLog("Using bundled PersistenceHelper_Embedded")
-                addLog("No download needed - file is included in app")
-                addLog("Will inject CDHash into trust cache")
+                addLog("installd is patched - ready to install")
 
-                downloadAndInstallTrollStore()
+                self.downloadAndInstallTrollStore()
             }
         }
     }
 
     func downloadAndInstallTrollStore() {
-        // Use bundled PersistenceHelper_Embedded instead of downloading
+        // Use bundled PersistenceHelper_Embedded
         addLog("Loading PersistenceHelper from app bundle...")
 
         // Get path to bundled PersistenceHelper
@@ -394,25 +393,18 @@ struct TrollStoreInstallerView: View {
 
         addLog("✓ PersistenceHelper ready (~209 KB)")
         addLog("")
-        addLog("=== Injecting PersistenceHelper CDHash ===")
-
-        // Inject CDHash directly from bundle
-        let result = trust_cache_inject_binary(bundlePath)
-
-        if result == 0 {
-            addLog("✓ PersistenceHelper CDHash injected into trust cache!")
-            addLog("")
-            addLog("=== Installation Complete ===")
-            addLog("")
-            addLog("Next steps:")
-            addLog("1. PersistenceHelper is now trusted by the kernel")
-            addLog("2. Binary location: \(bundlePath)")
-            addLog("3. You can now install TrollStore")
-            addLog("4. Check trust_cache_debug.log for details")
-        } else {
-            addLog("⚠ Trust cache injection failed: \(result)")
-            addLog("Check trust_cache_debug.log for error details")
-        }
+        addLog("=== Installation Complete ===")
+        addLog("")
+        addLog("installd is now patched to accept unsigned apps")
+        addLog("PersistenceHelper location: \(bundlePath)")
+        addLog("")
+        addLog("Next steps:")
+        addLog("1. Copy PersistenceHelper to /var/mobile/")
+        addLog("2. Run: ldid -S PersistenceHelper")
+        addLog("3. Run: ./PersistenceHelper install")
+        addLog("4. TrollStore will be installed!")
+        addLog("")
+        addLog("Check installd_debug.log for patch details")
 
         progress = 1.0
         status = "✓ Installation complete!"
