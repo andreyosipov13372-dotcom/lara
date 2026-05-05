@@ -56,11 +56,11 @@ final class laramgr: ObservableObject {
     static let italicfontpath = "/System/Library/Fonts/Core/SFUIItalic.ttf"
     static let monofontpath = "/System/Library/Fonts/Core/SFUIMono.ttf"
     private init() {
-        // Auto-load default kernelcache if not exists
-        ensureDefaultKernelcache()
+        // Auto-download kernelcache if not exists
+        ensureKernelcacheExists()
     }
 
-    private func ensureDefaultKernelcache() {
+    private func ensureKernelcacheExists() {
         let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         let kernelcachePath = documentsPath.appendingPathComponent("kernelcache")
 
@@ -70,17 +70,19 @@ final class laramgr: ObservableObject {
             return
         }
 
-        // Copy default kernelcache from bundle
-        guard let bundlePath = Bundle.main.path(forResource: "kernelcache", ofType: "default", inDirectory: "Resources") else {
-            logmsg("⚠ default kernelcache not found in bundle")
-            return
-        }
+        logmsg("kernelcache not found, downloading automatically...")
 
-        do {
-            try FileManager.default.copyItem(atPath: bundlePath, toPath: kernelcachePath.path)
-            logmsg("✓ copied default kernelcache for iOS 17.6.1 (iPhone 11 Pro)")
-        } catch {
-            logmsg("✗ failed to copy default kernelcache: \(error.localizedDescription)")
+        // Call dlkerncache() to download kernelcache
+        DispatchQueue.global(qos: .userInitiated).async {
+            let success = dlkerncache()
+            DispatchQueue.main.async {
+                if success {
+                    self.logmsg("✓ kernelcache downloaded successfully")
+                } else {
+                    self.logmsg("✗ kernelcache download failed")
+                    self.logmsg("Go to Settings → Download Kernelcache to retry")
+                }
+            }
         }
     }
 
