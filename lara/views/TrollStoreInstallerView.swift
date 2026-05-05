@@ -356,11 +356,12 @@ struct TrollStoreInstallerView: View {
             }
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                // Step 3: Download and install TrollStore
+                // Step 3: Download and install TrollStore PersistenceHelper
                 status = "Step 3/3: Installing TrollStore..."
                 progress = 0.7
-                addLog("=== STEP 3: TROLLSTORE DOWNLOAD ===")
-                addLog("Downloading TrollStore IPA...")
+                addLog("=== STEP 3: PERSISTENCEHELPER DOWNLOAD ===")
+                addLog("Downloading TrollStore PersistenceHelper binary...")
+                addLog("This is the core binary needed for TrollStore installation")
                 addLog("Will inject CDHash into trust cache after download")
 
                 downloadAndInstallTrollStore()
@@ -369,10 +370,11 @@ struct TrollStoreInstallerView: View {
     }
 
     func downloadAndInstallTrollStore() {
-        // TrollStore 2.1.1+ uses .tar instead of .ipa
-        let trollStoreURL = "https://github.com/opa334/TrollStore/releases/download/2.1.1/TrollStore.tar"
+        // Download PersistenceHelper instead of full TrollStore.tar
+        // This is the actual binary we need to inject into trust cache
+        let trollStoreURL = "https://github.com/opa334/TrollStore/releases/download/2.1.1/PersistenceHelper_Embedded"
 
-        addLog("Downloading TrollStore from: \(trollStoreURL)")
+        addLog("Downloading TrollStore PersistenceHelper from: \(trollStoreURL)")
 
         guard let url = URL(string: trollStoreURL) else {
             failInstallation("Invalid TrollStore URL")
@@ -420,7 +422,7 @@ struct TrollStoreInstallerView: View {
 
                 if fileSize < 100000 {
                     self.addLog("✗ Downloaded file too small (\(fileSize) bytes)")
-                    self.addLog("This is likely a redirect or error page")
+                    self.addLog("Expected ~209 KB for PersistenceHelper")
 
                     // Log first 500 bytes to see what we got
                     if let data = try? Data(contentsOf: localURL),
@@ -429,13 +431,13 @@ struct TrollStoreInstallerView: View {
                         self.addLog(content)
                     }
 
-                    self.failInstallation("TrollStore download failed - file too small")
+                    self.failInstallation("PersistenceHelper download failed - file too small")
                     return
                 }
 
                 // Move to Documents directory
                 let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-                let destinationURL = documentsPath.appendingPathComponent("TrollStore.tar")
+                let destinationURL = documentsPath.appendingPathComponent("PersistenceHelper")
 
                 do {
                     // Remove old file if exists
@@ -446,15 +448,34 @@ struct TrollStoreInstallerView: View {
                     // Move downloaded file
                     try FileManager.default.moveItem(at: localURL, to: destinationURL)
 
-                    self.addLog("✓ TrollStore saved to: \(destinationURL.path)")
+                    self.addLog("✓ PersistenceHelper saved to: \(destinationURL.path)")
                     self.addLog("")
-                    self.addLog("=== Extracting TrollStore Binary ===")
+                    self.addLog("=== Injecting PersistenceHelper CDHash ===")
 
-                    // Extract TrollStore.tar and inject CDHash
-                    self.extractAndInjectTrollStore(tarPath: destinationURL.path)
+                    // Inject CDHash directly - no extraction needed
+                    let result = trust_cache_inject_binary(destinationURL.path)
+
+                    if result == 0 {
+                        self.addLog("✓ PersistenceHelper CDHash injected into trust cache!")
+                        self.addLog("")
+                        self.addLog("=== Installation Complete ===")
+                        self.addLog("")
+                        self.addLog("Next steps:")
+                        self.addLog("1. PersistenceHelper is now trusted by the kernel")
+                        self.addLog("2. You can install it using TrollStore installer")
+                        self.addLog("3. Check trust_cache_debug.log for details")
+                    } else {
+                        self.addLog("⚠ Trust cache injection failed: \(result)")
+                        self.addLog("Check trust_cache_debug.log for error details")
+                    }
+
+                    self.progress = 1.0
+                    self.status = "✓ Installation complete!"
+                    self.isInstalling = false
+                    self.installComplete = true
 
                 } catch {
-                    self.addLog("✗ Failed to save TrollStore: \(error.localizedDescription)")
+                    self.addLog("✗ Failed to save PersistenceHelper: \(error.localizedDescription)")
                     self.failInstallation("Failed to save downloaded file")
                 }
             }
@@ -462,106 +483,6 @@ struct TrollStoreInstallerView: View {
 
         task.resume()
         addLog("Download started...")
-    }
-
-    func extractAndInjectTrollStore(tarPath: String) {
-        addLog("Extracting TrollStore.tar...")
-
-        // Extract TAR using tar command
-        let tempDir = NSTemporaryDirectory() + "trollstore_tar_extract"
-
-        // Remove old extraction
-        try? FileManager.default.removeItem(atPath: tempDir)
-        try? FileManager.default.createDirectory(atPath: tempDir, withIntermediateDirectories: true)
-
-        addLog("Extraction directory: \(tempDir)")
-
-        // Use tar command to extract - simpler approach
-        let extractCmd = "/usr/bin/tar -xf '\(tarPath)' -C '\(tempDir)' 2>&1"
-        addLog("Running: \(extractCmd)")
-
-        var output = ""
-        if let pipe = popen(extractCmd, "r") {
-            var buffer = [CChar](repeating: 0, count: 256)
-            while fgets(&buffer, 256, pipe) != nil {
-                output += String(cString: buffer)
-            }
-            pclose(pipe)
-        }
-
-        if !output.isEmpty {
-            addLog("tar output: \(output)")
-        }
-
-        // Check if extraction succeeded by looking for files
-        guard let contents = try? FileManager.default.contentsOfDirectory(atPath: tempDir),
-              !contents.isEmpty else {
-            addLog("✗ TAR extraction failed - no files extracted")
-            if !output.isEmpty {
-                addLog("Error: \(output)")
-            }
-            failInstallation("Failed to extract TrollStore.tar")
-            return
-        }
-
-        addLog("✓ TAR extracted successfully")
-        addLog("Found \(contents.count) items")
-
-        // Find TrollStore.app in extracted files
-        var trollStoreAppPath: String?
-
-        for item in contents {
-            addLog("  - \(item)")
-            if item.hasSuffix(".app") {
-                trollStoreAppPath = tempDir + "/" + item
-                break
-            }
-        }
-
-        guard let appPath = trollStoreAppPath else {
-            addLog("✗ TrollStore.app not found in TAR")
-            failInstallation("TrollStore.app not found")
-            return
-        }
-
-        addLog("✓ Found TrollStore.app at: \(appPath)")
-
-        // Find binary inside .app
-        let appName = (appPath as NSString).lastPathComponent.replacingOccurrences(of: ".app", with: "")
-        let binaryPath = appPath + "/" + appName
-
-        addLog("Binary path: \(binaryPath)")
-
-        guard FileManager.default.fileExists(atPath: binaryPath) else {
-            addLog("✗ Binary not found at: \(binaryPath)")
-            failInstallation("TrollStore binary not found")
-            return
-        }
-
-        addLog("✓ Found binary, injecting CDHash...")
-
-        // Inject CDHash into trust cache
-        let result = trust_cache_inject_binary(binaryPath)
-
-        if result == 0 {
-            addLog("✓ TrollStore CDHash injected into trust cache!")
-            addLog("")
-            addLog("=== Installation Complete ===")
-            addLog("")
-            addLog("Next steps:")
-            addLog("1. TrollStore.app is in: \(appPath)")
-            addLog("2. Trust cache injection is active")
-            addLog("3. You can now install TrollStore manually")
-            addLog("4. Check trust_cache_debug.log for details")
-        } else {
-            addLog("⚠ Trust cache injection failed: \(result)")
-            addLog("Check trust_cache_debug.log for error details")
-        }
-
-        progress = 1.0
-        status = "✓ Installation complete!"
-        isInstalling = false
-        installComplete = true
     }
 
     func failInstallation(_ message: String) {
