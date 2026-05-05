@@ -356,13 +356,13 @@ struct TrollStoreInstallerView: View {
             }
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                // Step 3: Download and install TrollStore PersistenceHelper
+                // Step 3: Load bundled PersistenceHelper
                 status = "Step 3/3: Installing TrollStore..."
                 progress = 0.7
-                addLog("=== STEP 3: PERSISTENCEHELPER DOWNLOAD ===")
-                addLog("Downloading TrollStore PersistenceHelper binary...")
-                addLog("This is the core binary needed for TrollStore installation")
-                addLog("Will inject CDHash into trust cache after download")
+                addLog("=== STEP 3: LOAD PERSISTENCEHELPER ===")
+                addLog("Using bundled PersistenceHelper_Embedded")
+                addLog("No download needed - file is included in app")
+                addLog("Will inject CDHash into trust cache")
 
                 downloadAndInstallTrollStore()
             }
@@ -370,61 +370,47 @@ struct TrollStoreInstallerView: View {
     }
 
     func downloadAndInstallTrollStore() {
-        // Download PersistenceHelper using Objective-C curl wrapper
-        let trollStoreURL = "https://github.com/opa334/TrollStore/releases/download/2.1.1/PersistenceHelper_Embedded"
+        // Use bundled PersistenceHelper_Embedded instead of downloading
+        addLog("Loading PersistenceHelper from app bundle...")
 
-        addLog("Downloading TrollStore PersistenceHelper from: \(trollStoreURL)")
-
-        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-        let destinationURL = documentsPath.appendingPathComponent("PersistenceHelper")
-
-        // Remove old file if exists
-        if FileManager.default.fileExists(atPath: destinationURL.path) {
-            try? FileManager.default.removeItem(at: destinationURL)
-        }
-
-        addLog("Download destination: \(destinationURL.path)")
-        addLog("Starting download via curl...")
-
-        // Use Objective-C function to download (handles popen properly)
-        let result = trust_cache_download_file(trollStoreURL, destinationURL.path)
-
-        if result != 0 {
-            addLog("✗ Download failed with error code: \(result)")
-            failInstallation("Failed to download PersistenceHelper")
+        // Get path to bundled PersistenceHelper
+        guard let bundlePath = Bundle.main.path(forResource: "PersistenceHelper_Embedded", ofType: nil) else {
+            addLog("✗ PersistenceHelper_Embedded not found in app bundle")
+            failInstallation("PersistenceHelper_Embedded missing from bundle")
             return
         }
 
+        addLog("✓ Found PersistenceHelper at: \(bundlePath)")
+
         // Check file size
-        let fileSize = (try? FileManager.default.attributesOfItem(atPath: destinationURL.path)[.size] as? Int64) ?? 0
-        addLog("✓ PersistenceHelper downloaded successfully")
+        let fileSize = (try? FileManager.default.attributesOfItem(atPath: bundlePath)[.size] as? Int64) ?? 0
         addLog("File size: \(fileSize) bytes")
 
         if fileSize < 100000 {
-            addLog("✗ Downloaded file too small (\(fileSize) bytes)")
-            addLog("Expected ~209 KB for PersistenceHelper")
-            failInstallation("PersistenceHelper download failed - file too small")
+            addLog("✗ Bundled file too small (\(fileSize) bytes)")
+            failInstallation("PersistenceHelper bundle file corrupted")
             return
         }
 
-        addLog("✓ PersistenceHelper saved to: \(destinationURL.path)")
+        addLog("✓ PersistenceHelper ready (~209 KB)")
         addLog("")
         addLog("=== Injecting PersistenceHelper CDHash ===")
 
-        // Inject CDHash directly - no extraction needed
-        let injectResult = trust_cache_inject_binary(destinationURL.path)
+        // Inject CDHash directly from bundle
+        let result = trust_cache_inject_binary(bundlePath)
 
-        if injectResult == 0 {
+        if result == 0 {
             addLog("✓ PersistenceHelper CDHash injected into trust cache!")
             addLog("")
             addLog("=== Installation Complete ===")
             addLog("")
             addLog("Next steps:")
             addLog("1. PersistenceHelper is now trusted by the kernel")
-            addLog("2. You can install it using TrollStore installer")
-            addLog("3. Check trust_cache_debug.log for details")
+            addLog("2. Binary location: \(bundlePath)")
+            addLog("3. You can now install TrollStore")
+            addLog("4. Check trust_cache_debug.log for details")
         } else {
-            addLog("⚠ Trust cache injection failed: \(injectResult)")
+            addLog("⚠ Trust cache injection failed: \(result)")
             addLog("Check trust_cache_debug.log for error details")
         }
 
