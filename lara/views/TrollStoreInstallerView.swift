@@ -23,11 +23,7 @@ struct TrollStoreInstallerView: View {
     @State private var showPreviousLogs: Bool = false
 
     private let logFilePath: URL = {
-        // Save to shared container accessible from Files app
-        if let sharedURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.lara") {
-            return sharedURL.appendingPathComponent("trollstore_logs.txt")
-        }
-        // Fallback to Documents
+        // Write directly to Documents folder (same as other debug logs)
         let docs = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
         return docs.appendingPathComponent("trollstore_logs.txt")
     }()
