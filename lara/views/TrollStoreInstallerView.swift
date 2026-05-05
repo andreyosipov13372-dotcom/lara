@@ -370,119 +370,97 @@ struct TrollStoreInstallerView: View {
     }
 
     func downloadAndInstallTrollStore() {
-        // Download PersistenceHelper instead of full TrollStore.tar
-        // This is the actual binary we need to inject into trust cache
+        // Download PersistenceHelper using curl via popen (after sandbox escape)
+        // URLSession seems to crash the device during active kernel r/w
         let trollStoreURL = "https://github.com/opa334/TrollStore/releases/download/2.1.1/PersistenceHelper_Embedded"
 
         addLog("Downloading TrollStore PersistenceHelper from: \(trollStoreURL)")
+        addLog("Using curl instead of URLSession to avoid kernel panic")
 
-        guard let url = URL(string: trollStoreURL) else {
-            failInstallation("Invalid TrollStore URL")
+        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let destinationURL = documentsPath.appendingPathComponent("PersistenceHelper")
+
+        // Remove old file if exists
+        if FileManager.default.fileExists(atPath: destinationURL.path) {
+            try? FileManager.default.removeItem(at: destinationURL)
+        }
+
+        addLog("Download destination: \(destinationURL.path)")
+        addLog("Starting download via curl...")
+
+        // Use curl with popen (works after sandbox escape)
+        let curlCmd = "/usr/bin/curl -L -o '\(destinationURL.path)' '\(trollStoreURL)' 2>&1"
+        addLog("Running: curl -L -o PersistenceHelper [URL]")
+
+        var output = ""
+        if let pipe = popen(curlCmd, "r") {
+            var buffer = [CChar](repeating: 0, count: 256)
+            while fgets(&buffer, 256, pipe) != nil {
+                let line = String(cString: buffer)
+                output += line
+                // Log progress lines
+                if line.contains("%") || line.contains("curl:") {
+                    addLog(line.trimmingCharacters(in: .whitespacesAndNewlines))
+                }
+            }
+            pclose(pipe)
+        }
+
+        // Check if file was downloaded
+        guard FileManager.default.fileExists(atPath: destinationURL.path) else {
+            addLog("✗ Download failed - file not found")
+            if !output.isEmpty {
+                addLog("curl output: \(output)")
+            }
+            failInstallation("Failed to download PersistenceHelper")
             return
         }
 
-        // Create URLSession configuration that follows redirects
-        let config = URLSessionConfiguration.default
-        config.httpMaximumConnectionsPerHost = 1
-        config.timeoutIntervalForRequest = 30
-        config.timeoutIntervalForResource = 300
-        let session = URLSession(configuration: config)
+        // Check file size
+        let fileSize = (try? FileManager.default.attributesOfItem(atPath: destinationURL.path)[.size] as? Int64) ?? 0
+        addLog("✓ PersistenceHelper downloaded successfully")
+        addLog("File size: \(fileSize) bytes")
 
-        // Download TrollStore TAR
-        let task = session.downloadTask(with: url) { localURL, response, error in
-            // Log response details
-            if let httpResponse = response as? HTTPURLResponse {
-                DispatchQueue.main.async {
-                    self.addLog("HTTP Status: \(httpResponse.statusCode)")
-                    if let finalURL = httpResponse.url {
-                        self.addLog("Final URL: \(finalURL.absoluteString)")
-                    }
-                }
-            }
-            if let error = error {
-                DispatchQueue.main.async {
-                    self.addLog("✗ Download failed: \(error.localizedDescription)")
-                    self.failInstallation("Failed to download TrollStore")
-                }
-                return
+        if fileSize < 100000 {
+            addLog("✗ Downloaded file too small (\(fileSize) bytes)")
+            addLog("Expected ~209 KB for PersistenceHelper")
+
+            // Log first 500 bytes to see what we got
+            if let data = try? Data(contentsOf: destinationURL),
+               let content = String(data: data.prefix(500), encoding: .utf8) {
+                addLog("File content preview:")
+                addLog(content)
             }
 
-            guard let localURL = localURL else {
-                DispatchQueue.main.async {
-                    self.failInstallation("Download completed but no file received")
-                }
-                return
-            }
-
-            DispatchQueue.main.async {
-                // Check file size before proceeding
-                let fileSize = (try? FileManager.default.attributesOfItem(atPath: localURL.path)[.size] as? Int64) ?? 0
-                self.addLog("✓ TrollStore downloaded successfully")
-                self.addLog("File size: \(fileSize) bytes")
-
-                if fileSize < 100000 {
-                    self.addLog("✗ Downloaded file too small (\(fileSize) bytes)")
-                    self.addLog("Expected ~209 KB for PersistenceHelper")
-
-                    // Log first 500 bytes to see what we got
-                    if let data = try? Data(contentsOf: localURL),
-                       let content = String(data: data.prefix(500), encoding: .utf8) {
-                        self.addLog("File content preview:")
-                        self.addLog(content)
-                    }
-
-                    self.failInstallation("PersistenceHelper download failed - file too small")
-                    return
-                }
-
-                // Move to Documents directory
-                let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-                let destinationURL = documentsPath.appendingPathComponent("PersistenceHelper")
-
-                do {
-                    // Remove old file if exists
-                    if FileManager.default.fileExists(atPath: destinationURL.path) {
-                        try FileManager.default.removeItem(at: destinationURL)
-                    }
-
-                    // Move downloaded file
-                    try FileManager.default.moveItem(at: localURL, to: destinationURL)
-
-                    self.addLog("✓ PersistenceHelper saved to: \(destinationURL.path)")
-                    self.addLog("")
-                    self.addLog("=== Injecting PersistenceHelper CDHash ===")
-
-                    // Inject CDHash directly - no extraction needed
-                    let result = trust_cache_inject_binary(destinationURL.path)
-
-                    if result == 0 {
-                        self.addLog("✓ PersistenceHelper CDHash injected into trust cache!")
-                        self.addLog("")
-                        self.addLog("=== Installation Complete ===")
-                        self.addLog("")
-                        self.addLog("Next steps:")
-                        self.addLog("1. PersistenceHelper is now trusted by the kernel")
-                        self.addLog("2. You can install it using TrollStore installer")
-                        self.addLog("3. Check trust_cache_debug.log for details")
-                    } else {
-                        self.addLog("⚠ Trust cache injection failed: \(result)")
-                        self.addLog("Check trust_cache_debug.log for error details")
-                    }
-
-                    self.progress = 1.0
-                    self.status = "✓ Installation complete!"
-                    self.isInstalling = false
-                    self.installComplete = true
-
-                } catch {
-                    self.addLog("✗ Failed to save PersistenceHelper: \(error.localizedDescription)")
-                    self.failInstallation("Failed to save downloaded file")
-                }
-            }
+            failInstallation("PersistenceHelper download failed - file too small")
+            return
         }
 
-        task.resume()
-        addLog("Download started...")
+        addLog("✓ PersistenceHelper saved to: \(destinationURL.path)")
+        addLog("")
+        addLog("=== Injecting PersistenceHelper CDHash ===")
+
+        // Inject CDHash directly - no extraction needed
+        let result = trust_cache_inject_binary(destinationURL.path)
+
+        if result == 0 {
+            addLog("✓ PersistenceHelper CDHash injected into trust cache!")
+            addLog("")
+            addLog("=== Installation Complete ===")
+            addLog("")
+            addLog("Next steps:")
+            addLog("1. PersistenceHelper is now trusted by the kernel")
+            addLog("2. You can install it using TrollStore installer")
+            addLog("3. Check trust_cache_debug.log for details")
+        } else {
+            addLog("⚠ Trust cache injection failed: \(result)")
+            addLog("Check trust_cache_debug.log for error details")
+        }
+
+        progress = 1.0
+        status = "✓ Installation complete!"
+        isInstalling = false
+        installComplete = true
     }
 
     func failInstallation(_ message: String) {
