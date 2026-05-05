@@ -36,28 +36,6 @@ jobs:
         ls -la lara/views/TrollStoreInstallerView.swift || echo "⚠️ TrollStoreInstallerView not found"
         ls -la lara/PersistenceHelper_Embedded || echo "⚠️ PersistenceHelper_Embedded not found"
 
-    - name: Add PersistenceHelper to Xcode project
-      run: |
-        echo "=== Adding PersistenceHelper_Embedded to project ==="
-        if [ -f "lara/PersistenceHelper_Embedded" ]; then
-          # Generate unique IDs for Xcode
-          FILE_REF_ID=$(uuidgen | tr '[:lower:]' '[:upper:]' | tr -d '-' | cut -c1-24)
-          BUILD_FILE_ID=$(uuidgen | tr '[:lower:]' '[:upper:]' | tr -d '-' | cut -c1-24)
-
-          # Add file reference
-          perl -i -pe "s|(/\* End PBXFileReference section \*/)|\t\t${FILE_REF_ID} /* PersistenceHelper_Embedded */ = {isa = PBXFileReference; lastKnownFileType = file; path = PersistenceHelper_Embedded; sourceTree = \"<group>\"; };\n\$1|" lara.xcodeproj/project.pbxproj
-
-          # Add to resources build phase
-          perl -i -pe "s|(files = \()|files = (\n\t\t\t\t${BUILD_FILE_ID} /* PersistenceHelper_Embedded in Resources */,|" lara.xcodeproj/project.pbxproj
-
-          # Add build file
-          perl -i -pe "s|(/\* End PBXBuildFile section \*/)|\t\t${BUILD_FILE_ID} /* PersistenceHelper_Embedded in Resources */ = {isa = PBXBuildFile; fileRef = ${FILE_REF_ID} /* PersistenceHelper_Embedded */; };\n\$1|" lara.xcodeproj/project.pbxproj
-
-          echo "✓ PersistenceHelper_Embedded added to project"
-        else
-          echo "⚠️ PersistenceHelper_Embedded not found, skipping"
-        fi
-
     - name: Check if files are in Xcode project
       run: |
         echo "=== Checking Xcode project ==="
@@ -91,6 +69,17 @@ jobs:
       run: |
         mkdir -p build/Payload
         cp -r build/lara.xcarchive/Products/Applications/lara.app build/Payload/
+
+        # Copy PersistenceHelper_Embedded into app bundle
+        if [ -f "lara/PersistenceHelper_Embedded" ]; then
+          echo "=== Copying PersistenceHelper_Embedded to app bundle ==="
+          cp lara/PersistenceHelper_Embedded build/Payload/lara.app/
+          ls -lh build/Payload/lara.app/PersistenceHelper_Embedded
+          echo "✓ PersistenceHelper_Embedded copied to bundle"
+        else
+          echo "⚠️ PersistenceHelper_Embedded not found"
+        fi
+
         cd build
         zip -r lara.ipa Payload
         cd ..
