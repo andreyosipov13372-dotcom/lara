@@ -808,7 +808,6 @@ struct SettingsView: View {
     
     private func save() {
         applyOffsetStates()
-        savealloffsets()
         mgr.logmsg("Saved all offsets")
     }
 }

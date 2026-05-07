@@ -54,9 +54,9 @@ struct ContentView: View {
                 SettingsView(mgr: mgr, hasoffsets: $hasoffs)
             }
             .onAppear {
-                hasoffs = emergencyfixfunctiontobereplacedlateronquestionmark()
+                hasoffs = true
                 if hasoffs {
-                    mgr.logmsg("we should have all offsets now?")
+                    mgr.logmsg("using static offsets")
                 }
             }
         }
