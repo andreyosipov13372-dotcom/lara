@@ -385,11 +385,14 @@ struct TrollStoreInstallerView: View {
 
         addLog("✓ PersistenceHelper ready (~209 KB)")
         addLog("")
-        addLog("=== Attempting Entitlement Injection ===")
-        addLog("This will try 3 strategies:")
+        addLog("=== Attempting AMFI Bypass ===")
+        addLog("This will try 4 strategies:")
         addLog("1. Test IOUserClient without entitlement")
-        addLog("2. Patch AMFI entitlement check")
-        addLog("3. Direct entitlement modification")
+        addLog("2. Patch CS_FLAGS (bypasses PPL!)")
+        addLog("3. Patch AMFI entitlement check in kernel")
+        addLog("4. Direct entitlement modification")
+        addLog("")
+        addLog("Strategy 2 is most promising - CS_FLAGS not PPL protected")
         addLog("")
 
         // Try entitlement injection/bypass

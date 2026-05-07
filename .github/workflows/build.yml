@@ -35,6 +35,7 @@ jobs:
         ls -la lara/kexploit/pe/installd_patch.* || echo "⚠️ installd_patch files not found"
         ls -la lara/kexploit/pe/amfi_userclient.* || echo "⚠️ amfi_userclient files not found"
         ls -la lara/kexploit/pe/entitlement_inject.* || echo "⚠️ entitlement_inject files not found"
+        ls -la lara/kexploit/pe/csflags_patch.* || echo "⚠️ csflags_patch files not found"
         ls -la lara/views/TrollStoreInstallerView.swift || echo "⚠️ TrollStoreInstallerView not found"
         ls -la lara/PersistenceHelper_Embedded || echo "⚠️ PersistenceHelper_Embedded not found"
 
@@ -45,6 +46,7 @@ jobs:
         grep -c "installd_patch.m" lara.xcodeproj/project.pbxproj || echo "⚠️ installd_patch.m NOT in project"
         grep -c "amfi_userclient.m" lara.xcodeproj/project.pbxproj || echo "⚠️ amfi_userclient.m NOT in project"
         grep -c "entitlement_inject.m" lara.xcodeproj/project.pbxproj || echo "⚠️ entitlement_inject.m NOT in project"
+        grep -c "csflags_patch.m" lara.xcodeproj/project.pbxproj || echo "⚠️ csflags_patch.m NOT in project"
         grep -c "TrollStoreInstallerView.swift" lara.xcodeproj/project.pbxproj || echo "⚠️ TrollStoreInstallerView NOT in project"
 
     - name: Build project
