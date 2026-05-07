@@ -9,12 +9,6 @@
 /* Begin PBXBuildFile section */
 		9F4A1D2F3C4E567890123456 /* lara/lib/libxpf.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 9F4A1D2E3C4E567890123456 /* lara/lib/libxpf.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		9F4A1D423C4E567890123456 /* lara/lib/libgrabkernel2.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 9F4A1D413C4E567890123456 /* lara/lib/libgrabkernel2.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		EBDF69B37B2445C897A93254 /* csflags_patch.h in Sources */ = {isa = PBXBuildFile; fileRef = 2351F6995CB843C09511407A /* csflags_patch.h */; };
-		9D304F3E1ACB4DDC88B5B7EA /* csflags_patch.m in Sources */ = {isa = PBXBuildFile; fileRef = B859281B9730433B97B91959 /* csflags_patch.m */; };
-		0ABEAACE97234427B1DF9A48 /* entitlement_inject.h in Sources */ = {isa = PBXBuildFile; fileRef = D4B2462A266E4E7AB91D0705 /* entitlement_inject.h */; };
-		3FCC2C4467C54C598D17CE51 /* entitlement_inject.m in Sources */ = {isa = PBXBuildFile; fileRef = 67749AB8E3FA4DCCB7BE24FC /* entitlement_inject.m */; };
-		0EB05B3C25EF4405AD7AF48E /* amfi_userclient.h in Sources */ = {isa = PBXBuildFile; fileRef = 1FA9236E2409466FABA65883 /* amfi_userclient.h */; };
-		C0BB673587A84E039681B6B4 /* amfi_userclient.m in Sources */ = {isa = PBXBuildFile; fileRef = 67F2207E65FD41B0A2F43E83 /* amfi_userclient.m */; };
 		/* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -43,13 +37,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		8F5C1F9B2D6A4E9D9F4B1A21 /* lara/kexploit/darksword.m */ = {isa = PBXFileRefe		2351F6995CB843C09511407A /* csflags_patch.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = csflags_patch.h; sourceTree = "<group>"; };
-		B859281B9730433B97B91959 /* csflags_patch.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = csflags_patch.m; sourceTree = "<group>"; };
-		D4B2462A266E4E7AB91D0705 /* entitlement_inject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = entitlement_inject.h; sourceTree = "<group>"; };
-		67749AB8E3FA4DCCB7BE24FC /* entitlement_inject.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = entitlement_inject.m; sourceTree = "<group>"; };
-		1FA9236E2409466FABA65883 /* amfi_userclient.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = amfi_userclient.h; sourceTree = "<group>"; };
-		67F2207E65FD41B0A2F43E83 /* amfi_userclient.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = amfi_userclient.m; sourceTree = "<group>"; };
-rence; lastKnownFileType = sourcecode.c.objc; path = lara/kexploit/darksword.m; sourceTree = "<group>"; };
+		8F5C1F9B2D6A4E9D9F4B1A21 /* lara/kexploit/darksword.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = lara/kexploit/darksword.m; sourceTree = "<group>"; };
 		9F4A1D2E3C4E567890123456 /* lara/lib/libxpf.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = lara/lib/libxpf.dylib; sourceTree = "<group>"; };
 		9F4A1D413C4E567890123456 /* lara/lib/libgrabkernel2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = lara/lib/libgrabkernel2.dylib; sourceTree = "<group>"; };
 		CC1C8B392F71DF9C00206982 /* lara.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = lara.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -224,10 +212,7 @@ rence; lastKnownFileType = sourcecode.c.objc; path = lara/kexploit/darksword.m; 
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-							9D304F3E1ACB4DDC88B5B7EA /* csflags_patch.m in Sources */,
-				3FCC2C4467C54C598D17CE51 /* entitlement_inject.m in Sources */,
-				C0BB673587A84E039681B6B4 /* amfi_userclient.m in Sources */,
-);
+			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
