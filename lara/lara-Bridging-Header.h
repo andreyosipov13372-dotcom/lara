@@ -17,6 +17,9 @@
 #import "kexploit/pe/amfi.h"
 #import "kexploit/pe/installd_patch.h"
 #import "kexploit/pe/trust_cache_inject.h"
+#import "kexploit/pe/amfi_userclient.h"
+#import "kexploit/pe/entitlement_inject.h"
+#import "kexploit/pe/csflags_patch.h"
 
 long FindCacheDataOffset(const char *mgKey);
 

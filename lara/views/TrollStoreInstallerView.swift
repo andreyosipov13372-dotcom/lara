@@ -337,40 +337,31 @@ struct TrollStoreInstallerView: View {
         addLog("CRITICAL: Waiting 0.5s before AMFI bypass...")
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            // Step 2: Trust Cache Injection (SAFER than AMFI bypass)
-            status = "Step 2/3: Injecting Trust Cache..."
+            // Step 2: AMFI UserClient CDHash Injection
+            status = "Step 2/3: Injecting CDHash via AMFI..."
             progress = 0.4
-            addLog("=== STEP 2: TRUST CACHE INJECTION ===")
-            addLog("Note: Using trust cache injection instead of AMFI bypass")
-            addLog("This is more stable and doesn't cause kernel panic")
-
-            // Initialize trust cache injection
-            addLog("Initializing trust cache injection...")
-            let tcInitResult = trust_cache_inject_init()
-
-            if tcInitResult != 0 {
-                addLog("⚠ Trust cache init returned: \(tcInitResult)")
-                addLog("Continuing anyway - may still work")
-            } else {
-                addLog("✓ Trust cache injection initialized")
-            }
+            addLog("=== STEP 2: AMFI USERCLIENT INJECTION ===")
+            addLog("Note: Using IOUserClient to load CDHash into compilation service trust cache")
+            addLog("This bypasses normal trust cache checks!")
+            addLog("Based on iOS 17.6.1 kernelcache analysis")
+            addLog("")
+            addLog("Opening connection to AppleMobileFileIntegrityUserClient...")
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                // Step 3: Load bundled PersistenceHelper
+                // Step 3: Inject CDHash
                 status = "Step 3/3: Installing TrollStore..."
                 progress = 0.7
-                addLog("=== STEP 3: LOAD PERSISTENCEHELPER ===")
-                addLog("Using bundled PersistenceHelper_Embedded")
-                addLog("No download needed - file is included in app")
-                addLog("Will inject CDHash into trust cache")
+                addLog("=== STEP 3: CDHASH INJECTION ===")
+                addLog("Loading PersistenceHelper from bundle")
+                addLog("Will inject CDHash via AMFI UserClient")
 
-                downloadAndInstallTrollStore()
+                self.downloadAndInstallTrollStore()
             }
         }
     }
 
     func downloadAndInstallTrollStore() {
-        // Use bundled PersistenceHelper_Embedded instead of downloading
+        // Use bundled PersistenceHelper_Embedded
         addLog("Loading PersistenceHelper from app bundle...")
 
         // Get path to bundled PersistenceHelper
@@ -394,24 +385,55 @@ struct TrollStoreInstallerView: View {
 
         addLog("✓ PersistenceHelper ready (~209 KB)")
         addLog("")
-        addLog("=== Injecting PersistenceHelper CDHash ===")
+        addLog("=== Attempting AMFI Bypass ===")
+        addLog("This will try 4 strategies:")
+        addLog("1. Test IOUserClient without entitlement")
+        addLog("2. Patch CS_FLAGS (bypasses PPL!)")
+        addLog("3. Patch AMFI entitlement check in kernel")
+        addLog("4. Direct entitlement modification")
+        addLog("")
+        addLog("Strategy 2 is most promising - CS_FLAGS not PPL protected")
+        addLog("")
 
-        // Inject CDHash directly from bundle
-        let result = trust_cache_inject_binary(bundlePath)
+        // Try entitlement injection/bypass
+        addLog("Calling entitlement_inject()...")
+        let ent_result = entitlement_inject("com.apple.private.amfi.can-load-cdhash")
+
+        if ent_result == 0 {
+            addLog("✓ Entitlement injection/bypass successful!")
+        } else {
+            addLog("⚠ Entitlement injection returned: \(ent_result)")
+            addLog("Proceeding anyway - will try IOUserClient")
+        }
+
+        addLog("")
+        addLog("=== Injecting CDHash via AMFI UserClient ===")
+
+        // Inject CDHash using AMFI UserClient
+        let result = amfi_userclient_inject_binary(bundlePath)
 
         if result == 0 {
-            addLog("✓ PersistenceHelper CDHash injected into trust cache!")
+            addLog("✓ CDHash injected successfully!")
             addLog("")
             addLog("=== Installation Complete ===")
             addLog("")
+            addLog("PersistenceHelper is now trusted by AMFI")
+            addLog("Binary location: \(bundlePath)")
+            addLog("")
             addLog("Next steps:")
-            addLog("1. PersistenceHelper is now trusted by the kernel")
-            addLog("2. Binary location: \(bundlePath)")
-            addLog("3. You can now install TrollStore")
-            addLog("4. Check trust_cache_debug.log for details")
+            addLog("1. Copy PersistenceHelper to /var/mobile/")
+            addLog("2. Run: chmod +x PersistenceHelper")
+            addLog("3. Run: ./PersistenceHelper install")
+            addLog("4. TrollStore will be installed!")
+            addLog("")
+            addLog("Check logs for details:")
+            addLog("- amfi_userclient_debug.log")
+            addLog("- entitlement_inject_debug.log")
         } else {
-            addLog("⚠ Trust cache injection failed: \(result)")
-            addLog("Check trust_cache_debug.log for error details")
+            addLog("⚠ CDHash injection failed: \(result)")
+            addLog("Check logs for error details:")
+            addLog("- amfi_userclient_debug.log")
+            addLog("- entitlement_inject_debug.log")
         }
 
         progress = 1.0
