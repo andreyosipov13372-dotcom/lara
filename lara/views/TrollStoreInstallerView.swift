@@ -337,15 +337,14 @@ struct TrollStoreInstallerView: View {
         addLog("CRITICAL: Waiting 0.5s before AMFI bypass...")
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            // Step 2: AMFI UserClient CDHash Injection
-            status = "Step 2/3: Injecting CDHash via AMFI..."
+            // Step 2: TrustCache CDHash Injection
+            status = "Step 2/3: Injecting CDHash into TrustCache..."
             progress = 0.4
-            addLog("=== STEP 2: AMFI USERCLIENT INJECTION ===")
-            addLog("Note: Using IOUserClient to load CDHash into compilation service trust cache")
-            addLog("This bypasses normal trust cache checks!")
+            addLog("=== STEP 2: DIRECT TRUSTCACHE INJECTION ===")
+            addLog("Note: Using kernel r/w to inject CDHash directly into TrustCache list")
+            addLog("This avoids IOServiceOpen which causes kernel panics!")
             addLog("Based on iOS 17.6.1 kernelcache analysis")
             addLog("")
-            addLog("Opening connection to AppleMobileFileIntegrityUserClient...")
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 // Step 3: Inject CDHash
@@ -353,7 +352,7 @@ struct TrollStoreInstallerView: View {
                 progress = 0.7
                 addLog("=== STEP 3: CDHASH INJECTION ===")
                 addLog("Loading PersistenceHelper from bundle")
-                addLog("Will inject CDHash via AMFI UserClient")
+                addLog("Will inject CDHash directly to kernel memory")
 
                 self.downloadAndInstallTrollStore()
             }
@@ -385,39 +384,24 @@ struct TrollStoreInstallerView: View {
 
         addLog("✓ PersistenceHelper ready (~209 KB)")
         addLog("")
-        addLog("=== Attempting AMFI Bypass ===")
-        addLog("This will try 4 strategies:")
-        addLog("1. Test IOUserClient without entitlement")
-        addLog("2. Patch CS_FLAGS (bypasses PPL!)")
-        addLog("3. Patch AMFI entitlement check in kernel")
-        addLog("4. Direct entitlement modification")
-        addLog("")
-        addLog("Strategy 2 is most promising - CS_FLAGS not PPL protected")
+        addLog("=== Bypassing AMFI Entitlement Checks ===")
+        addLog("Instead of attempting to bypass AMFI UserClient entitlements,")
+        addLog("we will directly inject into the Kernel TrustCache.")
         addLog("")
 
-        // Try entitlement injection/bypass
-        addLog("Calling entitlement_inject()...")
-        let ent_result = entitlement_inject("com.apple.private.amfi.can-load-cdhash")
-
-        if ent_result == 0 {
-            addLog("✓ Entitlement injection/bypass successful!")
-        } else {
-            addLog("⚠ Entitlement injection returned: \(ent_result)")
-            addLog("Proceeding anyway - will try IOUserClient")
-        }
-
         addLog("")
-        addLog("=== Injecting CDHash via AMFI UserClient ===")
+        addLog("=== Injecting CDHash directly into Kernel TrustCache ===")
+        addLog("Avoiding AMFI UserClient to prevent kernel panics.")
 
-        // Inject CDHash using AMFI UserClient
-        let result = amfi_userclient_inject_binary(bundlePath)
+        // Inject CDHash directly into kernel memory
+        let result = trust_cache_inject_binary(bundlePath)
 
         if result == 0 {
             addLog("✓ CDHash injected successfully!")
             addLog("")
             addLog("=== Installation Complete ===")
             addLog("")
-            addLog("PersistenceHelper is now trusted by AMFI")
+            addLog("PersistenceHelper is now trusted by kernel")
             addLog("Binary location: \(bundlePath)")
             addLog("")
             addLog("Next steps:")
@@ -427,12 +411,12 @@ struct TrollStoreInstallerView: View {
             addLog("4. TrollStore will be installed!")
             addLog("")
             addLog("Check logs for details:")
-            addLog("- amfi_userclient_debug.log")
+            addLog("- trust_cache_debug.log")
             addLog("- entitlement_inject_debug.log")
         } else {
             addLog("⚠ CDHash injection failed: \(result)")
             addLog("Check logs for error details:")
-            addLog("- amfi_userclient_debug.log")
+            addLog("- trust_cache_debug.log")
             addLog("- entitlement_inject_debug.log")
         }
 
