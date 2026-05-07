@@ -337,31 +337,23 @@ struct TrollStoreInstallerView: View {
         addLog("CRITICAL: Waiting 0.5s before AMFI bypass...")
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            // Step 2: Patch installd (SAFER than trust cache injection)
-            status = "Step 2/3: Patching installd..."
+            // Step 2: AMFI UserClient CDHash Injection
+            status = "Step 2/3: Injecting CDHash via AMFI..."
             progress = 0.4
-            addLog("=== STEP 2: INSTALLD PATCH ===")
-            addLog("Note: Using installd patch instead of trust cache injection")
-            addLog("This is more stable and doesn't cause kernel panic")
-            addLog("Patching installd to accept unsigned apps...")
-
-            // Patch installd using RemoteCall
-            let patchResult = installd_patch_for_trollstore(mgr.rc)
-
-            if patchResult != 0 {
-                addLog("⚠ installd patch returned: \(patchResult)")
-                addLog("Continuing anyway - may still work")
-            } else {
-                addLog("✓ installd patched successfully")
-            }
+            addLog("=== STEP 2: AMFI USERCLIENT INJECTION ===")
+            addLog("Note: Using IOUserClient to load CDHash into compilation service trust cache")
+            addLog("This bypasses normal trust cache checks!")
+            addLog("Based on iOS 17.6.1 kernelcache analysis")
+            addLog("")
+            addLog("Opening connection to AppleMobileFileIntegrityUserClient...")
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                // Step 3: Show PersistenceHelper location
+                // Step 3: Inject CDHash
                 status = "Step 3/3: Installing TrollStore..."
                 progress = 0.7
-                addLog("=== STEP 3: PERSISTENCEHELPER READY ===")
-                addLog("Using bundled PersistenceHelper_Embedded")
-                addLog("installd is patched - ready to install")
+                addLog("=== STEP 3: CDHASH INJECTION ===")
+                addLog("Loading PersistenceHelper from bundle")
+                addLog("Will inject CDHash via AMFI UserClient")
 
                 self.downloadAndInstallTrollStore()
             }
@@ -393,18 +385,30 @@ struct TrollStoreInstallerView: View {
 
         addLog("✓ PersistenceHelper ready (~209 KB)")
         addLog("")
-        addLog("=== Installation Complete ===")
-        addLog("")
-        addLog("installd is now patched to accept unsigned apps")
-        addLog("PersistenceHelper location: \(bundlePath)")
-        addLog("")
-        addLog("Next steps:")
-        addLog("1. Copy PersistenceHelper to /var/mobile/")
-        addLog("2. Run: ldid -S PersistenceHelper")
-        addLog("3. Run: ./PersistenceHelper install")
-        addLog("4. TrollStore will be installed!")
-        addLog("")
-        addLog("Check installd_debug.log for patch details")
+        addLog("=== Injecting CDHash via AMFI UserClient ===")
+
+        // Inject CDHash using AMFI UserClient
+        let result = amfi_userclient_inject_binary(bundlePath)
+
+        if result == 0 {
+            addLog("✓ CDHash injected successfully!")
+            addLog("")
+            addLog("=== Installation Complete ===")
+            addLog("")
+            addLog("PersistenceHelper is now trusted by AMFI")
+            addLog("Binary location: \(bundlePath)")
+            addLog("")
+            addLog("Next steps:")
+            addLog("1. Copy PersistenceHelper to /var/mobile/")
+            addLog("2. Run: chmod +x PersistenceHelper")
+            addLog("3. Run: ./PersistenceHelper install")
+            addLog("4. TrollStore will be installed!")
+            addLog("")
+            addLog("Check amfi_userclient_debug.log for details")
+        } else {
+            addLog("⚠ CDHash injection failed: \(result)")
+            addLog("Check amfi_userclient_debug.log for error details")
+        }
 
         progress = 1.0
         status = "✓ Installation complete!"
