@@ -42,30 +42,26 @@ jobs:
     - name: Check if files are in Xcode project
       run: |
         echo "=== Checking Xcode project ==="
-        grep -c "amfi.m" lara.xcodeproj/project.pbxproj || echo "⚠️ amfi.m NOT in project"
-        grep -c "installd_patch.m" lara.xcodeproj/project.pbxproj || echo "⚠️ installd_patch.m NOT in project"
-        grep -c "amfi_userclient.m" lara.xcodeproj/project.pbxproj || echo "⚠️ amfi_userclient.m NOT in project"
-        grep -c "entitlement_inject.m" lara.xcodeproj/project.pbxproj || echo "⚠️ entitlement_inject.m NOT in project"
-        grep -c "csflags_patch.m" lara.xcodeproj/project.pbxproj || echo "⚠️ csflags_patch.m NOT in project"
-        grep -c "TrollStoreInstallerView.swift" lara.xcodeproj/project.pbxproj || echo "⚠️ TrollStoreInstallerView NOT in project"
+        # This project uses PBXFileSystemSynchronizedRootGroup (Xcode 16+):
+        # source files are auto-discovered from disk, NOT listed in project.pbxproj.
+        # Verify files exist on disk instead of grepping the project file.
+        for f in \
+          "lara/kexploit/pe/amfi.m" \
+          "lara/kexploit/pe/installd_patch.m" \
+          "lara/kexploit/pe/amfi_userclient.m" \
+          "lara/kexploit/pe/entitlement_inject.m" \
+          "lara/kexploit/pe/csflags_patch.m" \
+          "lara/views/TrollStoreInstallerView.swift"; do
+          if [ -f "$f" ]; then
+            echo "✓ $f"
+          else
+            echo "⚠️ MISSING: $f"
+          fi
+        done
 
     - name: Build project
       run: |
-        # Copy new files into build if not in Xcode project
-        echo "=== Ensuring new files are available ==="
-        mkdir -p lara/kexploit/pe/
-
-        # These files might not be in Xcode project, but we need them
-        if [ ! -f "lara/kexploit/pe/csflags_patch.m" ]; then
-          echo "⚠️ csflags_patch.m missing"
-        fi
-        if [ ! -f "lara/kexploit/pe/entitlement_inject.m" ]; then
-          echo "⚠️ entitlement_inject.m missing"
-        fi
-        if [ ! -f "lara/kexploit/pe/amfi_userclient.m" ]; then
-          echo "⚠️ amfi_userclient.m missing"
-        fi
-
+        echo "=== Building ==="
         xcodebuild clean build \
           -project lara.xcodeproj \
           -scheme lara \
@@ -73,8 +69,7 @@ jobs:
           -destination 'generic/platform=iOS' \
           CODE_SIGN_IDENTITY="" \
           CODE_SIGNING_REQUIRED=NO \
-          CODE_SIGNING_ALLOWED=NO \
-          || echo "⚠️ Build failed - new files not in Xcode project"
+          CODE_SIGNING_ALLOWED=NO
 
     - name: Archive project
       run: |
