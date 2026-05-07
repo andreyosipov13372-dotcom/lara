@@ -385,6 +385,25 @@ struct TrollStoreInstallerView: View {
 
         addLog("✓ PersistenceHelper ready (~209 KB)")
         addLog("")
+        addLog("=== Attempting Entitlement Injection ===")
+        addLog("This will try 3 strategies:")
+        addLog("1. Test IOUserClient without entitlement")
+        addLog("2. Patch AMFI entitlement check")
+        addLog("3. Direct entitlement modification")
+        addLog("")
+
+        // Try entitlement injection/bypass
+        addLog("Calling entitlement_inject()...")
+        let ent_result = entitlement_inject("com.apple.private.amfi.can-load-cdhash")
+
+        if ent_result == 0 {
+            addLog("✓ Entitlement injection/bypass successful!")
+        } else {
+            addLog("⚠ Entitlement injection returned: \(ent_result)")
+            addLog("Proceeding anyway - will try IOUserClient")
+        }
+
+        addLog("")
         addLog("=== Injecting CDHash via AMFI UserClient ===")
 
         // Inject CDHash using AMFI UserClient
@@ -404,10 +423,14 @@ struct TrollStoreInstallerView: View {
             addLog("3. Run: ./PersistenceHelper install")
             addLog("4. TrollStore will be installed!")
             addLog("")
-            addLog("Check amfi_userclient_debug.log for details")
+            addLog("Check logs for details:")
+            addLog("- amfi_userclient_debug.log")
+            addLog("- entitlement_inject_debug.log")
         } else {
             addLog("⚠ CDHash injection failed: \(result)")
-            addLog("Check amfi_userclient_debug.log for error details")
+            addLog("Check logs for error details:")
+            addLog("- amfi_userclient_debug.log")
+            addLog("- entitlement_inject_debug.log")
         }
 
         progress = 1.0
